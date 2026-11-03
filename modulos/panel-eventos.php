@@ -839,7 +839,8 @@ add_action( 'template_redirect', function () {
 		return;
 	}
 	$vuelta = cl_ev_url( $id, 'vista' );
-	if ( 'draft' !== get_post_status( $id ) ) {
+	$estado_antes = get_post_status( $id );
+	if ( 'draft' !== $estado_antes && ! ( 'pending' === $estado_antes && cl_sin_revision() ) ) {
 		wp_safe_redirect( $vuelta );
 		exit;
 	}
@@ -850,9 +851,25 @@ add_action( 'template_redirect', function () {
 			exit;
 		}
 	}
-	wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 	$user = wp_get_current_user();
 	$emp  = cl_ev_emp_de( $id );
+	// v1.0.1: sin revisión (integrantes de confianza), se publica al momento y se avisa al admin.
+	if ( cl_sin_revision() ) {
+		wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ) );
+		cl_ev_meta( $id );
+		wp_mail(
+			get_option( 'admin_email' ),
+			'[Caminos Locales] Experiencia publicada: ' . get_the_title( $id ),
+			'La experiencia «' . get_the_title( $id ) . '» de ' . get_the_title( $emp ) . ' se publicó desde el panel.' . "\n" .
+			'Cuándo: ' . wp_specialchars_decode( cl_ev_cuando( $id ) ) . "\n" .
+			'Usuario: ' . $user->user_login . "\n\n" .
+			'Ver: ' . get_permalink( $id ) . "\n" .
+			'Editar: ' . admin_url( 'post.php?post=' . $id . '&action=edit' )
+		);
+		wp_safe_redirect( add_query_arg( 'listo', 1, $vuelta ) );
+		exit;
+	}
+	wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 	wp_mail(
 		get_option( 'admin_email' ),
 		'[Caminos Locales] Experiencia para revisar: ' . get_the_title( $id ),
@@ -1149,7 +1166,7 @@ add_shortcode( 'cl_panel_eventos', function () {
 		echo '<div class="cle-msg cle-err">' . esc_html( $errores[ sanitize_key( $_GET['error'] ) ] ) . '</div>';
 	}
 	if ( ! empty( $_GET['oculta'] ) && cl_ev_id( (int) $_GET['oculta'] ) ) {
-		echo '<div class="cle-msg cle-info-msg">«' . esc_html( get_the_title( (int) $_GET['oculta'] ) ) . '» ya no se ve en la web. Podés volver a publicarla cuando quieras, sin pasar por revisión.</div>';
+		echo '<div class="cle-msg cle-info-msg">«' . esc_html( get_the_title( (int) $_GET['oculta'] ) ) . '» ya no se ve en la web. Podés volver a publicarla cuando quieras.</div>';
 	}
 	if ( ! empty( $_GET['borrada'] ) ) {
 		echo '<div class="cle-msg cle-info-msg">La experiencia se borró. Si fue un error, escribinos y la recuperamos.</div>';
@@ -1192,7 +1209,7 @@ add_shortcode( 'cl_panel_eventos', function () {
 		echo '<input type="hidden" name="cl_ev_nuevo" value="1"><input type="hidden" name="emp" value="' . (int) $emp . '">';
 		wp_nonce_field( 'cl_ev_nuevo_' . $emp, '_clnonce', false );
 		echo '<button type="submit" class="cle-btn">+ Crear y completar</button>';
-		echo '<span class="cle-s">Se crea como borrador: nadie la ve hasta que la envíes a revisión y la publiquemos.</span></form>';
+		echo '<span class="cle-s">' . ( cl_sin_revision() ? 'Se crea como borrador: nadie la ve hasta que la publiques desde «Ver cómo queda».' : 'Se crea como borrador: nadie la ve hasta que la envíes a revisión y la publiquemos.' ) . '</span></form>';
 	}
 	if ( $pasados ) {
 		echo '<h2 class="cle-h2">Ya pasaron</h2><p class="cle-p" style="font-size:14px">Ya no se ven en la web. Para repetir una, tocá <strong>Duplicar</strong> y ponele la fecha nueva.</p>';
@@ -1275,7 +1292,7 @@ add_shortcode( 'cl_panel_ev_cabecera', function () {
 	$muestra = cl_ev_en_otro_lugar( $id ) ? 'su teléfono y contacto' : 'su teléfono, mapa y contacto';
 	echo '<div class="cle-msg cle-info-msg" style="font-size:14px">Lo organiza <strong>' . esc_html( $emp ? get_the_title( $emp ) : '—' ) . '</strong>. La ficha muestra ' . esc_html( $muestra ) . '.</div>';
 	if ( ! empty( $_GET['copiada'] ) ) {
-		echo '<div class="cle-msg" style="background:#dcebe4;color:#174a3a"><strong>Listo, es una copia. ✓</strong> Poné la fecha nueva, revisá los datos y las fotos, y enviala a revisión desde «Ver cómo queda».</div>';
+		echo '<div class="cle-msg" style="background:#dcebe4;color:#174a3a"><strong>Listo, es una copia. ✓</strong> Poné la fecha nueva, revisá los datos y las fotos, y ' . ( cl_sin_revision() ? 'publicala' : 'enviala a revisión' ) . ' desde «Ver cómo queda».</div>';
 	}
 	if ( cl_ev_oculta( $id ) ) {
 		echo '<div class="cle-msg" style="background:#f1ede4;color:#4a4335">Esta experiencia está <strong>oculta</strong>: no se ve en la web. Para mostrarla de nuevo, entrá a «Ver cómo queda».</div>';
@@ -1383,7 +1400,9 @@ add_shortcode( 'cl_panel_ev_vista', function () {
 .clv-nota{font-size:14px;line-height:1.4;color:#5b6a68}
 </style>
 <div class="clv">
-	<?php if ( ! empty( $_GET['enviado'] ) ) : ?>
+	<?php if ( ! empty( $_GET['listo'] ) && 'publish' === $estado ) : ?>
+		<div class="clv-msg clv-info"><strong>¡Listo, tu experiencia ya está publicada! ✓</strong><br>Ya se ve en Caminos Locales. Podés seguir cambiándola cuando quieras.</div>
+	<?php elseif ( ! empty( $_GET['enviado'] ) ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo, la enviaste! ✓</strong><br>Tu experiencia está en revisión. Te avisamos por email cuando esté publicada, normalmente en 1 o 2 días.</div>
 	<?php elseif ( ! empty( $_GET['publicada'] ) && 'publish' === $estado ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo! ✓</strong> Tu experiencia se ve de nuevo en la web.</div>
@@ -1420,20 +1439,24 @@ add_shortcode( 'cl_panel_ev_vista', function () {
 		<?php endforeach; ?>
 	</div>
 	<?php if ( cl_ev_oculta( $id ) ) : ?>
-		<div class="clv-msg clv-warn">Está oculta: no se ve en la web. Como ya la revisamos, la podés volver a publicar al momento.</div>
+		<div class="clv-msg clv-warn">Está oculta: no se ve en la web. <?php echo cl_sin_revision() ? 'La podés volver a publicar al momento.' : 'Como ya la revisamos, la podés volver a publicar al momento.'; ?></div>
 		<form method="post">
 			<input type="hidden" name="cl_ev_republicar" value="1">
 			<input type="hidden" name="ev" value="<?php echo (int) $id; ?>">
 			<?php wp_nonce_field( 'cl_ev_republicar_' . $id, '_clnonce', false ); ?>
 			<button type="submit" class="clv-btn"<?php echo $faltan ? ' disabled' : ''; ?>>Volver a publicar</button>
 		</form>
-	<?php elseif ( 'draft' === $estado ) : ?>
-		<div class="clv-msg clv-warn">Cuando la envíes, la revisamos y la publicamos. Te avisamos por email, normalmente en 1 o 2 días.</div>
+	<?php elseif ( 'draft' === $estado || ( 'pending' === $estado && cl_sin_revision() ) ) : ?>
+		<?php if ( cl_sin_revision() ) : ?>
+			<div class="clv-msg clv-warn">Cuando completes lo obligatorio, publicala: se ve en la web al momento.</div>
+		<?php else : ?>
+			<div class="clv-msg clv-warn">Cuando la envíes, la revisamos y la publicamos. Te avisamos por email, normalmente en 1 o 2 días.</div>
+		<?php endif; ?>
 		<form method="post">
 			<input type="hidden" name="cl_ev_enviar" value="1">
 			<input type="hidden" name="ev" value="<?php echo (int) $id; ?>">
 			<?php wp_nonce_field( 'cl_ev_enviar_' . $id, '_clnonce', false ); ?>
-			<button type="submit" class="clv-btn"<?php echo $faltan ? ' disabled' : ''; ?>>Enviar a revisión</button>
+			<button type="submit" class="clv-btn"<?php echo $faltan ? ' disabled' : ''; ?>><?php echo cl_sin_revision() ? 'Publicar' : 'Enviar a revisión'; ?></button>
 		</form>
 	<?php elseif ( 'pending' === $estado ) : ?>
 		<?php if ( empty( $_GET['enviado'] ) ) : ?>

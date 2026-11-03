@@ -884,7 +884,7 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 
 		// Campo sensible de un emprendedor: queda en espera.
 		// Solo en fichas publicadas y si ya había un valor (en una ficha nueva se carga directo).
-		if ( isset( $sensibles[ $campo ] ) && ! $es_admin && 'publish' === get_post_status( $emp_id ) && '' !== $actual ) {
+		if ( isset( $sensibles[ $campo ] ) && ! $es_admin && ! cl_sin_revision() && 'publish' === get_post_status( $emp_id ) && '' !== $actual ) {
 			$pendientes[ $campo ] = array( 'valor' => $valor, 'fecha' => current_time( 'mysql' ), 'usuario' => get_current_user_id() );
 			$en_espera[]          = $sensibles[ $campo ];
 			continue;
@@ -1255,7 +1255,8 @@ add_action( 'template_redirect', function () {
 	}
 	$vuelta = home_url( '/panel/emprendimiento/?paso=vista' . cl_panel_qs( $id ) );
 	$vuelta = current_user_can( 'manage_options' ) ? add_query_arg( 'paso', 'vista', home_url( '/panel/emprendimiento/?emp=' . $id ) ) : $vuelta;
-	if ( 'draft' !== get_post_status( $id ) ) {
+	$estado_antes = get_post_status( $id );
+	if ( 'draft' !== $estado_antes && ! ( 'pending' === $estado_antes && cl_sin_revision() ) ) {
 		wp_safe_redirect( $vuelta );
 		exit;
 	}
@@ -1266,8 +1267,22 @@ add_action( 'template_redirect', function () {
 			exit;
 		}
 	}
-	wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 	$user = wp_get_current_user();
+	// v1.0.1: sin revisión (integrantes de confianza), se publica al momento y se avisa al admin.
+	if ( cl_sin_revision() ) {
+		wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ) );
+		wp_mail(
+			get_option( 'admin_email' ),
+			'[Caminos Locales] Ficha publicada: ' . get_the_title( $id ),
+			'El emprendimiento «' . get_the_title( $id ) . '» se publicó desde el panel.' . "\n" .
+			'Usuario: ' . $user->user_login . "\n\n" .
+			'Ver: ' . get_permalink( $id ) . "\n" .
+			'Editar: ' . admin_url( 'post.php?post=' . $id . '&action=edit' )
+		);
+		wp_safe_redirect( add_query_arg( 'publicada', 1, $vuelta ) );
+		exit;
+	}
+	wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 	wp_mail(
 		get_option( 'admin_email' ),
 		'[Caminos Locales] Ficha para revisar: ' . get_the_title( $id ),
@@ -1359,7 +1374,9 @@ add_shortcode( 'cl_panel_vista', function () {
 .clv .clv-btn[disabled]{background:#c9c2b3;cursor:not-allowed}
 </style>
 <div class="clv">
-	<?php if ( ! empty( $_GET['enviado'] ) ) : ?>
+	<?php if ( ! empty( $_GET['publicada'] ) && 'publish' === $estado ) : ?>
+		<div class="clv-msg clv-info"><strong>¡Listo, tu ficha ya está publicada! ✓</strong><br>Ya se ve en Caminos Locales. Podés seguir cambiándola cuando quieras.</div>
+	<?php elseif ( ! empty( $_GET['enviado'] ) ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo, la enviaste! ✓</strong><br>Tu ficha está en revisión. Te avisamos por email cuando esté publicada, normalmente en 1 o 2 días.</div>
 	<?php elseif ( ! empty( $_GET['faltan'] ) ) : ?>
 		<div class="clv-msg clv-err">Todavía falta completar lo marcado con ✕.</div>
@@ -1398,20 +1415,24 @@ add_shortcode( 'cl_panel_vista', function () {
 		<?php endforeach; ?>
 	</div>
 
-	<?php if ( 'draft' === $estado ) : ?>
-		<div class="clv-msg clv-warn">Cuando la envíes, la revisamos y la publicamos. Te avisamos por email, normalmente en 1 o 2 días.</div>
+	<?php if ( 'draft' === $estado || ( 'pending' === $estado && cl_sin_revision() ) ) : ?>
+		<?php if ( cl_sin_revision() ) : ?>
+			<div class="clv-msg clv-warn">Cuando completes lo obligatorio, publicala: se ve en la web al momento.</div>
+		<?php else : ?>
+			<div class="clv-msg clv-warn">Cuando la envíes, la revisamos y la publicamos. Te avisamos por email, normalmente en 1 o 2 días.</div>
+		<?php endif; ?>
 		<form method="post">
 			<input type="hidden" name="cl_enviar_revision" value="1">
 			<input type="hidden" name="emp" value="<?php echo (int) $id; ?>">
 			<?php wp_nonce_field( 'cl_enviar_' . $id, '_clnonce', false ); ?>
-			<button type="submit" class="clv-btn"<?php echo $faltan_oblig ? ' disabled' : ''; ?>>Enviar a revisión</button>
+			<button type="submit" class="clv-btn"<?php echo $faltan_oblig ? ' disabled' : ''; ?>><?php echo cl_sin_revision() ? 'Publicar' : 'Enviar a revisión'; ?></button>
 		</form>
 	<?php elseif ( 'pending' === $estado ) : ?>
 		<?php if ( empty( $_GET['enviado'] ) ) : ?>
 			<div class="clv-msg clv-info">Tu ficha está en revisión. Te avisamos por email cuando esté publicada. Mientras tanto podés seguir editándola.</div>
 		<?php endif; ?>
 	<?php else : ?>
-		<div class="clv-msg clv-info">Tu ficha está publicada: lo que guardás se ve en la web al momento. El cambio de nombre o de email lo revisamos antes.</div>
+		<div class="clv-msg clv-info">Tu ficha está publicada: lo que guardás se ve en la web al momento.<?php echo cl_sin_revision() ? '' : ' El cambio de nombre o de email lo revisamos antes.'; ?></div>
 	<?php endif; ?>
 
 	<?php if ( $es_admin && 'publish' !== $estado ) : ?>

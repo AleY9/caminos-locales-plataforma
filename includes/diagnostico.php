@@ -31,6 +31,16 @@ function clp_es_staging() {
 	return (bool) preg_match( '/^(staging|stage|dev|test|qa)[.\-]|\.(local|test|localhost)$/', $host );
 }
 
+// Guardar el ajuste «Revisar antes de publicar».
+add_action( 'admin_post_clp_revision', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'clp_revision' ) ) {
+		wp_die( 'Sin permiso.' );
+	}
+	update_option( 'clp_con_revision', empty( $_POST['clp_con_revision'] ) ? 0 : 1, false );
+	wp_safe_redirect( admin_url( 'tools.php?page=caminos-locales&guardado=1' ) );
+	exit;
+} );
+
 function clp_diagnostico() {
 	$items = array();
 	$add   = function ( $grupo, $estado, $texto, $enlace = null ) use ( &$items ) {
@@ -57,6 +67,11 @@ function clp_diagnostico() {
 			$add( $M, 'ok', count( $cargados ) . ' de ' . count( $modulos ) . ' módulos cargados (en wp-admin se suma el de «¿Dónde ocurre?»).' );
 		}
 	}
+
+	// Publicación.
+	$add( 'Publicación', 'ok', cl_sin_revision()
+		? 'Los emprendedores publican sin revisión (fichas, alojamientos y experiencias). Te llega un correo con cada publicación y cada cambio.'
+		: 'Los emprendedores envían a revisión: vos publicás desde wp-admin. Los cambios de nombre y email quedan en espera.' );
 
 	// Dependencias.
 	$G = 'General';
@@ -143,6 +158,16 @@ function clp_pagina() {
 	<div class="wrap">
 		<h1>Caminos Locales Plataforma <span style="font-size:13px;color:#646970">versión <?php echo esc_html( CLP_VERSION ); ?></span></h1>
 		<p>Panel del emprendedor, fichas y funciones propias del sitio. Antes eran snippets de Code Snippets; el código es el mismo.</p>
+		<?php if ( isset( $_GET['guardado'] ) ) : // phpcs:ignore ?>
+			<div class="notice notice-success inline"><p>Guardado.</p></div>
+		<?php endif; ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="background:#fff;border:1px solid #dcdcde;border-radius:6px;padding:12px 16px;margin:16px 0;max-width:760px">
+			<input type="hidden" name="action" value="clp_revision">
+			<?php wp_nonce_field( 'clp_revision' ); ?>
+			<label style="font-size:14px"><input type="checkbox" name="clp_con_revision" value="1" <?php checked( ! cl_sin_revision() ); ?>> <strong>Revisar antes de publicar</strong></label>
+			<p class="description">Apagado: los emprendedores publican al momento y te llega un aviso por correo (integrantes de confianza). Encendido: envían a revisión y publicás vos.</p>
+			<?php submit_button( 'Guardar', 'secondary', 'submit', false ); ?>
+		</form>
 		<p style="font-size:15px">
 			<span style="color:#00a32a">✓ <?php echo (int) ( $cuenta['ok'] ?? 0 ); ?> bien</span> ·
 			<span style="color:#996800">! <?php echo (int) ( $cuenta['ojo'] ?? 0 ); ?> para revisar</span> ·

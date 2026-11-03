@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.0.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.0.1 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,13 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.0.1
+* Los emprendedores publican sin revisión: «Enviar a revisión» pasa a «Publicar» en la ficha, los alojamientos
+  y las experiencias; el cambio de nombre y de email se aplica directo. Al admin le llega un correo con cada
+  publicación y cada cambio, como antes.
+* Ajuste «Revisar antes de publicar» en Herramientas → Caminos Locales (apagado), para volver al flujo con revisión.
+* Lo que estaba «En revisión» se puede publicar desde el panel.
+
 1.0.0
 * Primera versión: los 16 snippets «CL – …» pasan a ser módulos del plugin, con el mismo código.
 * Diagnóstico en Herramientas → Caminos Locales (módulos, dependencias, seguridad, caché).

@@ -612,7 +612,8 @@ add_action( 'template_redirect', function () {
 		return;
 	}
 	$vuelta = cl_aloj_url( $id, 'vista' );
-	if ( 'draft' !== get_post_status( $id ) ) {
+	$estado_antes = get_post_status( $id );
+	if ( 'draft' !== $estado_antes && ! ( 'pending' === $estado_antes && cl_sin_revision() ) ) {
 		wp_safe_redirect( $vuelta );
 		exit;
 	}
@@ -623,9 +624,24 @@ add_action( 'template_redirect', function () {
 			exit;
 		}
 	}
-	wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 	$user = wp_get_current_user();
 	$emp  = cl_aloj_emp_de( $id );
+	// v1.0.1: sin revisión (integrantes de confianza), se publica al momento y se avisa al admin.
+	if ( cl_sin_revision() ) {
+		wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ) );
+		wp_mail(
+			get_option( 'admin_email' ),
+			'[Caminos Locales] Alojamiento publicado: ' . get_the_title( $id ),
+			'El alojamiento «' . get_the_title( $id ) . '» de ' . get_the_title( $emp ) . ' se publicó desde el panel.' . "\n" .
+			'Usuario: ' . $user->user_login . "\n\n" .
+			'Ver: ' . get_permalink( $id ) . "\n" .
+			'Editar: ' . admin_url( 'post.php?post=' . $id . '&action=edit' ) . "\n" .
+			'(El icono del alojamiento se elige en wp-admin.)'
+		);
+		wp_safe_redirect( add_query_arg( 'listo', 1, $vuelta ) );
+		exit;
+	}
+	wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 	wp_mail(
 		get_option( 'admin_email' ),
 		'[Caminos Locales] Alojamiento para revisar: ' . get_the_title( $id ),
@@ -913,7 +929,7 @@ add_shortcode( 'cl_panel_alojamientos', function () {
 		echo '<div class="cla-msg cla-err">' . esc_html( $errores[ sanitize_key( $_GET['error'] ) ] ) . '</div>';
 	}
 	if ( ! empty( $_GET['oculto'] ) && cl_aloj_id( (int) $_GET['oculto'] ) ) {
-		echo '<div class="cla-msg cla-info-msg">«' . esc_html( get_the_title( (int) $_GET['oculto'] ) ) . '» ya no se ve en la web. Podés volver a publicarlo cuando quieras, sin pasar por revisión.</div>';
+		echo '<div class="cla-msg cla-info-msg">«' . esc_html( get_the_title( (int) $_GET['oculto'] ) ) . '» ya no se ve en la web. Podés volver a publicarlo cuando quieras.</div>';
 	}
 	if ( ! empty( $_GET['borrado'] ) ) {
 		echo '<div class="cla-msg cla-info-msg">El alojamiento se borró. Si fue un error, escribinos y lo recuperamos.</div>';
@@ -953,7 +969,7 @@ add_shortcode( 'cl_panel_alojamientos', function () {
 		echo '<input type="hidden" name="cl_aloj_nuevo" value="1"><input type="hidden" name="emp" value="' . (int) $emp . '">';
 		wp_nonce_field( 'cl_aloj_nuevo_' . $emp, '_clnonce', false );
 		echo '<button type="submit" class="cla-btn">+ Crear y completar</button>';
-		echo '<span class="cla-s">Se crea como borrador: nadie lo ve hasta que lo envíes a revisión y lo publiquemos.</span>';
+		echo '<span class="cla-s">' . ( cl_sin_revision() ? 'Se crea como borrador: nadie lo ve hasta que lo publiques desde «Ver cómo queda».' : 'Se crea como borrador: nadie lo ve hasta que lo envíes a revisión y lo publiquemos.' ) . '</span>';
 		echo '</form>';
 	}
 	echo '<div class="cla-help"><strong style="color:#1f4645">¿Necesitás una mano?</strong><span class="cla-p">Mandanos las fotos y los datos por WhatsApp y lo cargamos con vos.</span>';
@@ -1008,7 +1024,7 @@ add_shortcode( 'cl_panel_aloj_cabecera', function () {
 	echo '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><strong style="font-family:Montserrat,sans-serif;font-size:17px;color:#1f4645">' . esc_html( get_the_title( $id ) ) . '</strong>' . cl_aloj_chip_de( $id ) . '</div>'; // phpcs:ignore
 	echo '<div class="cla-msg cla-info-msg" style="font-size:14px">Pertenece a <strong>' . esc_html( $emp ? get_the_title( $emp ) : '—' ) . '</strong>. Toma su ubicación, mapa y contacto: se cambian en <a href="' . esc_url( home_url( '/panel/emprendimiento/?paso=ubicacion' . ( current_user_can( 'manage_options' ) ? '&emp=' . $emp : '' ) ) ) . '" style="color:#1f4645;font-weight:700">Mi emprendimiento</a>.</div>';
 	if ( ! empty( $_GET['copiado'] ) ) {
-		echo '<div class="cla-msg" style="background:#dcebe4;color:#174a3a"><strong>Listo, es una copia. ✓</strong> Cambiale el nombre, revisá los datos y las fotos, y envialo a revisión desde «Ver cómo queda».</div>';
+		echo '<div class="cla-msg" style="background:#dcebe4;color:#174a3a"><strong>Listo, es una copia. ✓</strong> Cambiale el nombre, revisá los datos y las fotos, y ' . ( cl_sin_revision() ? 'publicalo' : 'envialo a revisión' ) . ' desde «Ver cómo queda».</div>';
 	}
 	if ( cl_aloj_oculto( $id ) ) {
 		echo '<div class="cla-msg" style="background:#f1ede4;color:#4a4335">Este alojamiento está <strong>oculto</strong>: no se ve en la web. Para mostrarlo de nuevo, entrá a «Ver cómo queda».</div>';
@@ -1069,7 +1085,9 @@ add_shortcode( 'cl_panel_aloj_vista', function () {
 .clv-nota{font-size:14px;line-height:1.4;color:#5b6a68}
 </style>
 <div class="clv">
-	<?php if ( ! empty( $_GET['enviado'] ) ) : ?>
+	<?php if ( ! empty( $_GET['listo'] ) && 'publish' === $estado ) : ?>
+		<div class="clv-msg clv-info"><strong>¡Listo, tu alojamiento ya está publicado! ✓</strong><br>Ya se ve en Caminos Locales. Podés seguir cambiándolo cuando quieras.</div>
+	<?php elseif ( ! empty( $_GET['enviado'] ) ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo, lo enviaste! ✓</strong><br>Tu alojamiento está en revisión. Te avisamos por email cuando esté publicado, normalmente en 1 o 2 días.</div>
 	<?php elseif ( ! empty( $_GET['publicado'] ) && 'publish' === $estado ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo! ✓</strong> Tu alojamiento se ve de nuevo en la web.</div>
@@ -1108,20 +1126,24 @@ add_shortcode( 'cl_panel_aloj_vista', function () {
 	</div>
 
 	<?php if ( cl_aloj_oculto( $id ) ) : ?>
-		<div class="clv-msg clv-warn">Está oculto: no se ve en la web. Como ya lo revisamos, lo podés volver a publicar al momento.</div>
+		<div class="clv-msg clv-warn">Está oculto: no se ve en la web. <?php echo cl_sin_revision() ? 'Lo podés volver a publicar al momento.' : 'Como ya lo revisamos, lo podés volver a publicar al momento.'; ?></div>
 		<form method="post">
 			<input type="hidden" name="cl_aloj_republicar" value="1">
 			<input type="hidden" name="aloj" value="<?php echo (int) $id; ?>">
 			<?php wp_nonce_field( 'cl_aloj_republicar_' . $id, '_clnonce', false ); ?>
 			<button type="submit" class="clv-btn"<?php echo $faltan ? ' disabled' : ''; ?>>Volver a publicar</button>
 		</form>
-	<?php elseif ( 'draft' === $estado ) : ?>
-		<div class="clv-msg clv-warn">Cuando lo envíes, lo revisamos y lo publicamos. Te avisamos por email, normalmente en 1 o 2 días.</div>
+	<?php elseif ( 'draft' === $estado || ( 'pending' === $estado && cl_sin_revision() ) ) : ?>
+		<?php if ( cl_sin_revision() ) : ?>
+			<div class="clv-msg clv-warn">Cuando completes lo obligatorio, publicalo: se ve en la web al momento.</div>
+		<?php else : ?>
+			<div class="clv-msg clv-warn">Cuando lo envíes, lo revisamos y lo publicamos. Te avisamos por email, normalmente en 1 o 2 días.</div>
+		<?php endif; ?>
 		<form method="post">
 			<input type="hidden" name="cl_aloj_enviar" value="1">
 			<input type="hidden" name="aloj" value="<?php echo (int) $id; ?>">
 			<?php wp_nonce_field( 'cl_aloj_enviar_' . $id, '_clnonce', false ); ?>
-			<button type="submit" class="clv-btn"<?php echo $faltan ? ' disabled' : ''; ?>>Enviar a revisión</button>
+			<button type="submit" class="clv-btn"<?php echo $faltan ? ' disabled' : ''; ?>><?php echo cl_sin_revision() ? 'Publicar' : 'Enviar a revisión'; ?></button>
 		</form>
 	<?php elseif ( 'pending' === $estado ) : ?>
 		<?php if ( empty( $_GET['enviado'] ) ) : ?>

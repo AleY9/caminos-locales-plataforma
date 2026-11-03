@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Caminos Locales Plataforma
  * Description:       Panel del emprendedor, fichas y funciones propias de caminoslocales.com (antes, snippets de Code Snippets).
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 6.4
  * Requires PHP:      8.0
  * Author:            Liquen Web
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CLP_VERSION', '1.0.0' );
+define( 'CLP_VERSION', '1.0.1' );
 define( 'CLP_FILE', __FILE__ );
 define( 'CLP_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -89,6 +89,15 @@ function clp_funciones_repetidas() {
 		}
 	}
 	return '';
+}
+
+/**
+ * ¿Los emprendedores publican sin revisión? (v1.0.1)
+ * Por defecto sí: integrantes de confianza. Publican al momento y al admin le llega un aviso.
+ * Se vuelve a pedir revisión en Herramientas → Caminos Locales (opción clp_con_revision).
+ */
+function cl_sin_revision() {
+	return ! get_option( 'clp_con_revision' );
 }
 
 // Módulos que se cargaron en este pedido (para el Diagnóstico).
