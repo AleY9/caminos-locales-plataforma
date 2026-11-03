@@ -46,6 +46,7 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
 1.0.2
 * «¿Qué hay en tu lugar?» en «Cómo es llegar y estar» del panel: agua potable, sombra, lugar para sentarse, lugar para comer,
   electricidad, señal de celular, wifi y estacionamiento (opcional, no cuenta en el progreso). Se guarda en el campo ACF en_el_lugar.
+* Ficha de alojamiento: botón «Escribir por WhatsApp» (como en experiencias).
 * «Diseño nuevo (noviembre 2026)» en Herramientas → Caminos Locales: pasa del staging la paleta, las letras, las plantillas y
   las páginas de Bricks, sin tocar lo que cambió en producción después de la copia. Con «Revisar» primero y «Volver atrás».
 

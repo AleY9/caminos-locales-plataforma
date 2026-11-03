@@ -15,8 +15,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CLP_DISENO_URL', 'https://staging.caminoslocales.com/wp-content/uploads/clp/diseno-2026-11-kNl06orf0Ygr.json' );
-define( 'CLP_DISENO_SHA256', 'dd46b5f2f8372b387c30d3a1d2ac6aa1d0e15c42d8dbf1977847851eaaa33688' );
+define( 'CLP_DISENO_URL', 'https://staging.caminoslocales.com/wp-content/uploads/clp/diseno-2026-11-84N8H1o8oYWR.json' );
+define( 'CLP_DISENO_SHA256', '8b3d8bb66c596ab246b4a1799ab777a81233df0c0ffba9cbe7e04cfe4e91e770' );
 
 // Normaliza un valor para compararlo con el del staging: JSON con la dirección del sitio como {{HOME}}.
 function clp_diseno_norm( $valor ) {
