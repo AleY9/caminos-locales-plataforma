@@ -15,20 +15,21 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CLP_DISENO_URL', 'https://staging.caminoslocales.com/wp-content/uploads/clp/diseno-2026-11-84N8H1o8oYWR.json' );
-define( 'CLP_DISENO_SHA256', '8b3d8bb66c596ab246b4a1799ab777a81233df0c0ffba9cbe7e04cfe4e91e770' );
+define( 'CLP_DISENO_URL', 'https://staging.caminoslocales.com/wp-content/uploads/clp/diseno-2026-11-X0YKDq4RNBS2.json' );
+define( 'CLP_DISENO_SHA256', '04e155532319108c5536fb567ffaf573268d7e4460e062e9b5dd71168b2764ba' );
 
 // Normaliza un valor para compararlo con el del staging: JSON con la dirección del sitio como {{HOME}}.
 function clp_diseno_norm( $valor ) {
 	$j    = wp_json_encode( $valor );
 	$home = untrailingslashit( home_url() );
-	return str_replace( array( str_replace( '/', '\/', $home ), $home ), '{{HOME}}', $j );
+	// También la dirección codificada (por ejemplo en ?redirect_to=https%3A%2F%2F...).
+	return str_replace( array( rawurlencode( $home ), str_replace( '/', '\/', $home ), $home ), array( '{{HOMEENC}}', '{{HOME}}', '{{HOME}}' ), $j );
 }
 
 // Del paquete al valor real de este sitio.
 function clp_diseno_valor( $json ) {
 	$home = untrailingslashit( home_url() );
-	return json_decode( str_replace( '{{HOME}}', str_replace( '/', '\/', $home ), $json ), true );
+	return json_decode( str_replace( array( '{{HOMEENC}}', '{{HOME}}' ), array( rawurlencode( $home ), str_replace( '/', '\/', $home ) ), $json ), true );
 }
 
 function clp_diseno_paquete() {
