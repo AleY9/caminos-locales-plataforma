@@ -500,6 +500,11 @@ function cl_panel_pendiente( $campo ) {
 
 // ---------- Reglas de guardado ----------
 
+// «¿Qué hay en tu lugar?» (v1.0.2): las mismas opciones que el campo ACF en_el_lugar.
+function cl_en_el_lugar_opciones() {
+	return array( 'Agua potable', 'Sombra', 'Lugar para sentarse', 'Lugar para comer', 'Electricidad', 'Señal de celular', 'Wifi', 'Estacionamiento' );
+}
+
 // Campos que el panel puede escribir, con su tipo y límite. Lo que no está acá no se guarda nunca.
 function cl_panel_campos_permitidos() {
 	return array(
@@ -546,6 +551,7 @@ function cl_panel_campos_permitidos() {
 		'porteras'                      => array( 'tipo' => 'sino' ),
 		'bano_tipo'                     => array( 'tipo' => 'opcion', 'opciones' => array( 'Hay baño', 'Sin baño' ) ),
 		'bano_inodoro'                  => array( 'tipo' => 'opcion', 'opciones' => array( 'Con descarga de agua', 'Seco (compostable)' ) ),
+		'en_el_lugar'                   => array( 'tipo' => 'opciones', 'opciones' => cl_en_el_lugar_opciones() ),
 	);
 }
 
@@ -602,6 +608,7 @@ function cl_panel_pasos() {
 			'clnpor' => 'porteras',
 			'clnban' => 'bano_tipo',
 			'clnino' => 'bano_inodoro',
+			'clnell' => 'en_el_lugar',
 			'cllleg' => 'como_llegar',
 		),
 	);
@@ -1044,7 +1051,7 @@ function cl_panel_progreso( $id ) {
 // Cuántas preguntas de «Cómo es llegar y estar» están respondidas. Devuelve array( respondidas, total ).
 function cl_panel_lugar_progreso( $id ) {
 	$campos = array_values( cl_panel_pasos()['lugar'] );
-	$campos = array_diff( $campos, array( 'traslado_nota', 'bano_inodoro' ) );
+	$campos = array_diff( $campos, array( 'traslado_nota', 'bano_inodoro', 'en_el_lugar' ) );
 	$hechas = 0;
 	foreach ( $campos as $c ) {
 		$v = cl_panel_leer( $c, $id );
