@@ -169,6 +169,7 @@ function clp_pagina() {
 			<?php submit_button( 'Guardar', 'secondary', 'submit', false ); ?>
 		</form>
 		<?php clp_invitaciones_caja(); ?>
+		<?php clp_servicios_caja(); ?>
 		<?php clp_diseno_caja(); ?>
 		<p style="font-size:15px">
 			<span style="color:#00a32a">✓ <?php echo (int) ( $cuenta['ok'] ?? 0 ); ?> bien</span> ·

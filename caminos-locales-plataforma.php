@@ -137,6 +137,7 @@ add_action( 'admin_notices', function () {
 require_once CLP_DIR . 'includes/diagnostico.php';
 require_once CLP_DIR . 'includes/actualizaciones.php';
 require_once CLP_DIR . 'includes/aplicar-diseno.php';
+require_once CLP_DIR . 'includes/aplicar-servicios.php';
 require_once CLP_DIR . 'includes/invitaciones.php';
 require_once CLP_DIR . 'includes/servicios.php';
 

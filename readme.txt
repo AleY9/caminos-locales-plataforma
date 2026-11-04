@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.0.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,19 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.0
+* Invitaciones de un solo uso (Herramientas → Caminos Locales → «Invitar a sumarse»): enlace por WhatsApp,
+  vence a los 14 días y sirve una vez. Alta con nombre, emprendimiento, email, WhatsApp y contraseña repetida;
+  entra directo al panel con el emprendimiento en borrador y avisa al admin.
+* Servicios locales: el rubro decide si es servicio; ficha compacta o completa a elección; zona («¿Hasta dónde
+  llegás?»), si se muestra al público y si se publica el teléfono. Directorio /servicios-locales/ con filtros de
+  zona y tipo (íconos), ventana para las fichas compactas y lista de prestadores en el panel. Las fichas compactas
+  no salen en los listados de turismo.
+* Panel: «Qué ofrecés» pasa a ser el primer paso; la ficha compacta pide solo lo que se muestra (una foto o logo,
+  descripción corta, lugar fijo opcional con mapa, idiomas).
+* «Invitaciones y servicios (1.1.0)» en Herramientas → Caminos Locales: pasa del staging las páginas y plantillas
+  nuevas, con «Revisar» primero y «Volver atrás».
+
 1.0.3
 * «Diseño nuevo»: reconoce también la dirección del sitio codificada en los enlaces (por ejemplo, el acceso con
   ?redirect_to=…), así la cabecera ya no figura como «cambió en este sitio».
