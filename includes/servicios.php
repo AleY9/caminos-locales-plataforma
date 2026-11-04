@@ -140,7 +140,7 @@ add_action( 'acf/include_fields', function () {
 // ---------- Datos para las tarjetas y la ficha ({echo:…}) ----------
 
 add_filter( 'bricks/code/echo_function_names', function ( $names ) {
-	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa' ) );
+	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa', 'cl_srv_ventana' ) );
 } );
 
 // «Aiguá y hasta 30 km» · «Aiguá · toda la región Este» · «Aiguá · todo el país».
@@ -189,6 +189,12 @@ function cl_srv_tipo( $id = 0 ) {
 function cl_srv_completa( $id = 0 ) {
 	$id = $id ? (int) $id : get_the_ID();
 	return cl_srv_con_ficha_completa( $id ) ? '1' : '';
+}
+
+// Tarjeta del directorio: '1' si al tocarla se abre la ventana (ficha compacta).
+function cl_srv_ventana( $id = 0 ) {
+	$id = $id ? (int) $id : get_the_ID();
+	return cl_es_servicio( $id ) ? '1' : '';
 }
 
 // Quien mira es de la red (emprendedor o administrador).
@@ -425,3 +431,45 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 }, 30 );
+
+// ---------- Ventana de servicio (popup de Bricks «Servicio (ventana)», con carga por AJAX) ----------
+
+function cl_srv_ventana_id() {
+	static $id = null;
+	if ( null === $id ) {
+		$t  = get_posts( array( 'post_type' => 'bricks_template', 'post_status' => 'publish', 'title' => 'Servicio (ventana)', 'numberposts' => 1, 'fields' => 'ids' ) );
+		$id = $t ? (int) $t[0] : 0;
+	}
+	return $id;
+}
+
+// Las tarjetas con data-srv-ventana="1" abren la ventana en vez de ir a la ficha.
+// Sin JavaScript (o si algo falla) el enlace sigue llevando a la ficha compacta.
+add_action( 'wp_footer', function () {
+	$pop = cl_srv_ventana_id();
+	if ( ! $pop || is_admin() ) {
+		return;
+	}
+	?>
+<script>
+(function(){
+	var POP = <?php echo (int) $pop; ?>;
+	document.addEventListener('click', function(e){
+		var a = e.target.closest('a[data-srv-ventana="1"][data-srv-id]');
+		if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) { return; }
+		var el = document.querySelector('.brx-popup[data-popup-id="' + POP + '"]');
+		if (!el || typeof bricksOpenPopup !== 'function') { return; }
+		e.preventDefault();
+		bricksOpenPopup(el, 0, { popupContextId: a.dataset.srvId, popupContextType: 'post' });
+	});
+})();
+</script>
+<style>
+.brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:760px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;padding:0;border-radius:18px;background:#fff}
+@media (max-width:767px){
+	.brx-popup:has(.cl-srv-ventana){align-items:flex-end}
+	.brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:100%;max-width:100%;max-height:82vh;border-radius:18px 18px 0 0}
+}
+</style>
+	<?php
+}, 40 );
