@@ -1059,6 +1059,12 @@ function cl_panel_progreso( $id ) {
 	if ( ! cl_panel_recibe_visitantes( $id ) ) {
 		unset( $chk['cómo llegar'] );
 	}
+	// Ficha compacta (1.1.0): sin «Quiénes somos»; la foto puede ser el logo.
+	if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $id ) ) {
+		unset( $chk['quiénes somos'] );
+		$chk = array( 'foto o logo' => $chk['foto principal'] ) + $chk;
+		unset( $chk['foto principal'] );
+	}
 	$faltan = array();
 	foreach ( $chk as $k => $v ) {
 		if ( empty( $v ) ) {
