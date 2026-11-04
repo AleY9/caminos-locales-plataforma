@@ -107,6 +107,10 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	if ( email_exists( $email ) ) {
 		return $error( 'Ya hay una cuenta con ese email. Entrá desde «Acceso» o pedí que te recuperemos la contraseña.' );
 	}
+	$clave2 = (string) ( $f['form-field-clinvq'] ?? $clave1 ); // «Repetí la contraseña» (1.1.0)
+	if ( $clave1 !== $clave2 ) {
+		return $error( 'Las dos contraseñas no coinciden. Escribilas de nuevo.' );
+	}
 	if ( strlen( $clave1 ) < 8 ) {
 		return $error( 'La contraseña tiene que tener al menos 8 caracteres.' );
 	}

@@ -1234,7 +1234,9 @@ function cl_panel_revision_chequeo( $id ) {
 	if ( $con_act ) {
 		$suger[] = array( 'Fotos de actividades', $act > 0, 'fotos' );
 	}
-	$suger[] = array( '¿Quiénes somos?', '' !== trim( (string) get_field( 'quienes_somos', $id, false ) ), 'presentacion' );
+	if ( ! function_exists( 'cl_es_servicio' ) || ! cl_es_servicio( $id ) ) {
+		$suger[] = array( '¿Quiénes somos?', '' !== trim( (string) get_field( 'quienes_somos', $id, false ) ), 'presentacion' );
+	}
 	return array( $oblig, $suger );
 }
 

@@ -398,6 +398,7 @@ add_action( 'wp_footer', function () {
 			$ids_turismo[] = (string) $t->term_id;
 		}
 	}
+	$rev     = ( ! function_exists( 'cl_sin_revision' ) || ! cl_sin_revision() ) && 'publish' === get_post_status( $id ) ? 1 : 0;
 	$en_srv  = cl_srv_tiene_rubro_servicio( $id ) ? 1 : 0;
 	$compact = cl_es_servicio( $id ) ? 1 : 0;
 	$comida  = cl_srv_es_comida( $id ) ? 1 : 0;
@@ -405,7 +406,7 @@ add_action( 'wp_footer', function () {
 <script>
 (function(){
 	var EN = <?php echo (int) $en_srv; ?>, CO = <?php echo (int) $compact; ?>, C = <?php echo (int) $comida; ?>;
-	var TUR = <?php echo wp_json_encode( $ids_turismo ); ?>;
+	var TUR = <?php echo wp_json_encode( $ids_turismo ); ?>, REV = <?php echo (int) $rev; ?>;
 	function g(id){ var el = document.querySelector('form.brxe-form [name="form-field-' + id + '"], form.brxe-form [name="form-field-' + id + '[]"], form.brxe-form [data-cl="' + id + '"]'); return el && el.closest('.form-group'); }
 	function ver(id, on){ var x = g(id); if (x) { x.style.display = on ? '' : 'none'; } }
 	// Ubicación: zona para todo el que aparece en Servicios.
@@ -414,6 +415,19 @@ add_action( 'wp_footer', function () {
 	function km(){ var v = ''; [].forEach.call(alc, function(r){ if (r.checked) { v = r.value; } }); ver('clskm', EN && v === 'Hasta cierta distancia'); }
 	[].forEach.call(alc, function(r){ r.addEventListener('change', km); });
 	km();
+	// Aviso de cambio de nombre: solo si hay revisión y la ficha está publicada.
+	ver('clavis', REV);
+	// Ficha compacta: sin «Quiénes somos», video ni los datos de visita; descripción corta.
+	if (CO) {
+		['clhqui','clquie','clvide','clhvis','clvisi','clhrec','clreco','clhpar','cltpar','clpart','clhred','cltred','clred','clhcon'].forEach(function(id){ ver(id, false); });
+		var hd = g('clhdes');
+		if (hd) {
+			hd.innerHTML = '<p style="font-size:15px;line-height:1.5;color:#3d4b49;background:#fbfaf6;border:1px solid #e0dacd;border-radius:12px;padding:10px 14px;margin:0">Con la ficha compacta alcanza con <strong>dos o tres oraciones</strong>: qué hacés, dónde y cómo trabajás. Ej.: <em>«Hago viandas y picnics con verduras de la huerta. Entrego en Aiguá y Villa Serrana con un día de aviso.»</em></p>';
+		}
+		var ld = document.querySelector('form.brxe-form [name="form-field-cldesc"]');
+		ld = ld && ld.closest('.form-group'); ld = ld && ld.querySelector('label');
+		if (ld) { ld.firstChild.textContent = 'Descripción de tu servicio'; }
+	}
 	// Contacto: visibilidad y teléfono solo con ficha compacta.
 	ver('clhsvc', CO); ver('cltpub', CO); ver('clspub', CO && !C);
 	// Qué ofrecés: «ficha completa» solo si no marcó Alojamiento ni Actividades.
