@@ -380,6 +380,9 @@ function cl_panel_valor( $campo ) {
 			$v     = cl_panel_leer( $campo, $id );
 			$reg   = cl_panel_campos_permitidos();
 			$tipo  = $reg[ $campo ]['tipo'];
+			if ( 'ficha_completa' === $campo && '' === $v ) {
+				return 'No';
+			}
 			if ( 'servicio_publico' === $campo && '' === $v ) {
 				return 'Sí'; // Servicios: arrancan visibles al público.
 			}
@@ -524,6 +527,7 @@ function cl_panel_campos_permitidos() {
 		'ofrece_alojamiento'            => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
 		'breve_descripcion_alojamiento' => array( 'tipo' => 'textarea', 'max' => 600 ),
 		'publica_eventos'               => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
+		'ficha_completa'                => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ), // 1.1.0, solo sin Alojamiento ni Actividades
 		// Paso Ubicación
 		'region'                        => array( 'tipo' => 'tax', 'tax' => 'region', 'unico' => true, 'min' => 1, 'error' => 'Elegí la región.' ),
 		'localidad'                     => array( 'tipo' => 'texto', 'max' => 200, 'obligatorio' => 'Escribí la localidad.' ),
@@ -584,6 +588,7 @@ function cl_panel_pasos() {
 			'clofal' => 'ofrece_alojamiento',
 			'clbral' => 'breve_descripcion_alojamiento',
 			'clpuev' => 'publica_eventos',
+			'clfcom' => 'ficha_completa',
 		),
 		'ubicacion'    => array(
 			'clregi' => 'region',
