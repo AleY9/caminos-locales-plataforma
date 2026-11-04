@@ -302,8 +302,14 @@ function cl_srv_plantilla_id() {
 }
 
 add_filter( 'bricks/active_templates', function ( $active, $post_id, $content_type ) {
-	if ( 'content' === $content_type && is_singular( 'emprendimientos' ) && cl_es_servicio( get_queried_object_id() ) && cl_srv_plantilla_id() ) {
-		$active['content'] = cl_srv_plantilla_id();
+	if ( ! is_singular( 'emprendimientos' ) || ! cl_es_servicio( get_queried_object_id() ) || ! cl_srv_plantilla_id() ) {
+		return $active;
+	}
+	$active['content'] = cl_srv_plantilla_id();
+	// La ficha compacta no tiene foto grande: va la cabecera común, no la transparente.
+	$cab = get_posts( array( 'post_type' => 'bricks_template', 'post_status' => 'publish', 'title' => 'Cabecera', 'numberposts' => 1, 'fields' => 'ids' ) );
+	if ( $cab ) {
+		$active['header'] = (int) $cab[0];
 	}
 	return $active;
 }, 10, 3 );

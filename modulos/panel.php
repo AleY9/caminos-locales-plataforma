@@ -380,6 +380,9 @@ function cl_panel_valor( $campo ) {
 			$v     = cl_panel_leer( $campo, $id );
 			$reg   = cl_panel_campos_permitidos();
 			$tipo  = $reg[ $campo ]['tipo'];
+			if ( 'servicio_publico' === $campo && '' === $v ) {
+				return 'Sí'; // Servicios: arrancan visibles al público.
+			}
 			if ( 'porteras' === $campo && '' === $v ) {
 				return 'Sí'; // Casi todos piden cerrar las porteras: arranca marcado.
 			}
