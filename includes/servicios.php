@@ -140,7 +140,7 @@ add_action( 'acf/include_fields', function () {
 // ---------- Datos para las tarjetas y la ficha ({echo:…}) ----------
 
 add_filter( 'bricks/code/echo_function_names', function ( $names ) {
-	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa', 'cl_srv_ventana' ) );
+	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa', 'cl_srv_ventana', 'cl_srv_facebook_url' ) );
 } );
 
 // «Aiguá y hasta 30 km» · «Aiguá · toda la región Este» · «Aiguá · todo el país».
@@ -195,6 +195,20 @@ function cl_srv_completa( $id = 0 ) {
 function cl_srv_ventana( $id = 0 ) {
 	$id = $id ? (int) $id : get_the_ID();
 	return cl_es_servicio( $id ) ? '1' : '';
+}
+
+// Facebook: acepta @usuario, usuario o el enlace entero.
+function cl_srv_facebook_url( $id = 0 ) {
+	$id = $id ? (int) $id : get_the_ID();
+	$v  = trim( (string) get_post_meta( $id, 'facebookemp', true ) );
+	if ( '' === $v ) {
+		return '';
+	}
+	if ( preg_match( '#^https?://#i', $v ) ) {
+		return esc_url_raw( $v );
+	}
+	$v = preg_replace( '#^(www\.)?facebook\.com/#i', '', ltrim( $v, '@' ) );
+	return 'https://www.facebook.com/' . rawurlencode( $v );
 }
 
 // Quien mira es de la red (emprendedor o administrador).
@@ -424,6 +438,17 @@ add_action( 'wp_footer', function () {
 		if (hd) {
 			hd.innerHTML = '<p style="font-size:15px;line-height:1.5;color:#3d4b49;background:#fbfaf6;border:1px solid #e0dacd;border-radius:12px;padding:10px 14px;margin:0">Con la ficha compacta alcanza con <strong>dos o tres oraciones</strong>: qué hacés, dónde y cómo trabajás. Ej.: <em>«Hago viandas y picnics con verduras de la huerta. Entrego en Aiguá y Villa Serrana con un día de aviso.»</em></p>';
 		}
+		// Ubicación: dirección y mapa solo si atiende en un lugar fijo.
+		var hm = g('clhmap');
+		if (hm) {
+			var box = document.createElement('div');
+			box.style.cssText = 'font-size:15px;line-height:1.5;color:#3d4b49;margin:8px 0 0;padding-top:14px;border-top:1px solid #e0dacd';
+			box.innerHTML = '<p style="font-size:17px;font-weight:700;color:#1f4645;margin:0">¿Atendés en un lugar fijo? <span style="font-weight:400;color:#5b6a68;font-size:15px">(opcional)</span></p><p style="margin:4px 0 0">Si tenés local, puesto o taller, poné la dirección y el mapa: se ven en tu ficha con el botón «Cómo llegar». Si trabajás a domicilio, dejalo vacío.</p>';
+			hm.parentNode.insertBefore(box, hm);
+		}
+		var ldi = document.querySelector('form.brxe-form [name="form-field-cldire"]');
+		ldi = ldi && ldi.closest('.form-group'); ldi = ldi && ldi.querySelector('label');
+		if (ldi) { ldi.firstChild.textContent = 'Dirección del local, puesto o taller'; }
 		var ld = document.querySelector('form.brxe-form [name="form-field-cldesc"]');
 		ld = ld && ld.closest('.form-group'); ld = ld && ld.querySelector('label');
 		if (ld) { ld.firstChild.textContent = 'Descripción de tu servicio'; }
@@ -437,8 +462,14 @@ add_action( 'wp_footer', function () {
 			var sel = [].filter.call(cajas, function(c){ return c.checked; }).map(function(c){ return c.value; });
 			var on = sel.length && !sel.some(function(v){ return TUR.indexOf(v) > -1; });
 			ver('clhfco', on); ver('clfcom', on);
+			// Temas: no se muestran en la ficha compacta.
+			var fc = document.querySelector('form.brxe-form [name="form-field-clfcom"]:checked');
+			var comp = on && (!fc || fc.value === 'No');
+			var tg = g('cltags'); var dt = tg && tg.closest('details');
+			if (dt) { dt.style.display = comp ? 'none' : ''; }
 		};
 		[].forEach.call(cajas, function(c){ c.addEventListener('change', f); });
+		[].forEach.call(document.querySelectorAll('form.brxe-form [name="form-field-clfcom"]'), function(r){ r.addEventListener('change', f); });
 		f();
 	}
 })();
@@ -479,6 +510,7 @@ add_action( 'wp_footer', function () {
 })();
 </script>
 <style>
+.cl-srv-mapa iframe{display:block;width:100%;height:180px;border:0;border-radius:12px}
 .brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:760px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;padding:0;border-radius:18px;background:#fff}
 @media (max-width:767px){
 	.brx-popup:has(.cl-srv-ventana){align-items:flex-end!important;justify-content:flex-end!important;padding:0!important}
