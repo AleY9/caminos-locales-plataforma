@@ -511,7 +511,8 @@ add_action( 'wp_footer', function () {
 </script>
 <style>
 .cl-srv-mapa iframe{display:block;width:100%!important;height:180px!important;border:0;border-radius:12px}
-.brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:760px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;padding:0;border-radius:18px;background:#fff}
+.brx-popup:has(.cl-srv-ventana){z-index:100000!important}
+.brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:880px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;padding:0;border-radius:18px;background:#fff}
 @media (max-width:767px){
 	.brx-popup:has(.cl-srv-ventana){align-items:flex-end!important;justify-content:flex-end!important;padding:0!important}
 	.brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:100%;max-width:100%;max-height:82vh;border-radius:18px 18px 0 0}
