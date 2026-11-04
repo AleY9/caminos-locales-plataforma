@@ -9,7 +9,7 @@
  *   ficha compacta y pueden elegir «ficha completa» en el paso «Qué ofrecés» (campo ficha_completa).
  *
  * - Directorio «Servicios locales»: todo el que tenga rubro de servicio (con ficha compacta o completa).
- *   Los de ficha completa llevan el sello «Ficha completa →». Clase de Bricks del bucle: cl-loop-servicios.
+ *   Los de ficha completa llevan «Conocé el emprendimiento →»; los demás, «Más información →». Clase de Bricks del bucle: cl-loop-servicios.
  *   Lista del panel: clase cl-loop-prestadores (incluye los que se muestran solo a la red).
  *   Filtros: [cl_servicios_filtros] (?zona=slug-de-región&tipo=slug-de-rubro).
  * - Ficha compacta: plantilla de Bricks «Single Servicio». Solo ella sale de los listados de turismo.
@@ -140,7 +140,7 @@ add_action( 'acf/include_fields', function () {
 // ---------- Datos para las tarjetas y la ficha ({echo:…}) ----------
 
 add_filter( 'bricks/code/echo_function_names', function ( $names ) {
-	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_sello' ) );
+	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa' ) );
 } );
 
 // «Aiguá y hasta 30 km» · «Aiguá · toda la región Este» · «Aiguá · todo el país».
@@ -185,10 +185,10 @@ function cl_srv_tipo( $id = 0 ) {
 	return implode( ' · ', $n );
 }
 
-// Sello de la tarjeta: «Ficha completa →» si tiene perfil de emprendimiento.
-function cl_srv_sello( $id = 0 ) {
+// Tarjeta: '1' si tiene perfil de emprendimiento («Conocé el emprendimiento →»); vacío si es ficha compacta («Más información →»).
+function cl_srv_completa( $id = 0 ) {
 	$id = $id ? (int) $id : get_the_ID();
-	return cl_srv_con_ficha_completa( $id ) ? 'Ficha completa →' : '';
+	return cl_srv_con_ficha_completa( $id ) ? '1' : '';
 }
 
 // Quien mira es de la red (emprendedor o administrador).
