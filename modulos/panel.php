@@ -526,12 +526,19 @@ function cl_panel_campos_permitidos() {
 		'localidad'                     => array( 'tipo' => 'texto', 'max' => 200, 'obligatorio' => 'Escribí la localidad.' ),
 		'ubicacion'                     => array( 'tipo' => 'mapa', 'max' => 3000 ),
 		'direccion_o_punto_de_encuentro' => array( 'tipo' => 'textarea', 'max' => 300 ),
+		// Paso Ubicación, solo servicios (1.1.0)
+		'servicio_alcance'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Solo en mi localidad', 'Hasta cierta distancia', 'En toda la región', 'En todo el país' ) ),
+		'servicio_km'                   => array( 'tipo' => 'numero', 'min' => 1, 'max' => 500 ),
+		'servicio_zona_nota'            => array( 'tipo' => 'texto', 'max' => 150 ),
 		// Paso Contacto
 		'telefono_contacto'             => array( 'tipo' => 'tel', 'max' => 30 ),
 		'email-emp'                     => array( 'tipo' => 'email', 'max' => 100 ),
 		'url_sitio_web'                 => array( 'tipo' => 'url', 'max' => 300 ),
 		'instagramemp'                  => array( 'tipo' => 'instagram', 'max' => 200 ),
 		'facebookemp'                   => array( 'tipo' => 'facebook', 'max' => 300 ),
+		// Paso Contacto, solo servicios (1.1.0)
+		'servicio_publico'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
+		'telefono_publico'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
 		// Paso Otros datos
 		'idiomas'                       => array( 'tipo' => 'texto', 'max' => 200 ),
 		'que_visitar_actividades_zona'  => array( 'tipo' => 'textarea', 'max' => 1200 ),
@@ -580,6 +587,9 @@ function cl_panel_pasos() {
 			'clloca' => 'localidad',
 			'clmapa' => 'ubicacion',
 			'cldire' => 'direccion_o_punto_de_encuentro',
+			'clsalc' => 'servicio_alcance',
+			'clskm'  => 'servicio_km',
+			'clsnot' => 'servicio_zona_nota',
 		),
 		'contacto'     => array(
 			'cltele' => 'telefono_contacto',
@@ -587,6 +597,8 @@ function cl_panel_pasos() {
 			'clweb'  => 'url_sitio_web',
 			'clinst' => 'instagramemp',
 			'clface' => 'facebookemp',
+			'clspub' => 'servicio_publico',
+			'cltpub' => 'telefono_publico',
 		),
 		'otros'        => array(
 			'clidio' => 'idiomas', // casillas + "otros idiomas" (clidot), se juntan al guardar

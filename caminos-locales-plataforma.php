@@ -138,6 +138,7 @@ require_once CLP_DIR . 'includes/diagnostico.php';
 require_once CLP_DIR . 'includes/actualizaciones.php';
 require_once CLP_DIR . 'includes/aplicar-diseno.php';
 require_once CLP_DIR . 'includes/invitaciones.php';
+require_once CLP_DIR . 'includes/servicios.php';
 
 register_activation_hook( __FILE__, function () {
 	delete_site_transient( 'update_plugins' );
