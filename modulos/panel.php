@@ -380,6 +380,12 @@ function cl_panel_valor( $campo ) {
 			$v     = cl_panel_leer( $campo, $id );
 			$reg   = cl_panel_campos_permitidos();
 			$tipo  = $reg[ $campo ]['tipo'];
+			if ( 'ficha_completa' === $campo && '' === $v ) {
+				return 'No';
+			}
+			if ( 'servicio_publico' === $campo && '' === $v ) {
+				return 'Sí'; // Servicios: arrancan visibles al público.
+			}
 			if ( 'porteras' === $campo && '' === $v ) {
 				return 'Sí'; // Casi todos piden cerrar las porteras: arranca marcado.
 			}
@@ -521,17 +527,25 @@ function cl_panel_campos_permitidos() {
 		'ofrece_alojamiento'            => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
 		'breve_descripcion_alojamiento' => array( 'tipo' => 'textarea', 'max' => 600 ),
 		'publica_eventos'               => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
+		'ficha_completa'                => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ), // 1.1.0, solo sin Alojamiento ni Actividades
 		// Paso Ubicación
 		'region'                        => array( 'tipo' => 'tax', 'tax' => 'region', 'unico' => true, 'min' => 1, 'error' => 'Elegí la región.' ),
 		'localidad'                     => array( 'tipo' => 'texto', 'max' => 200, 'obligatorio' => 'Escribí la localidad.' ),
 		'ubicacion'                     => array( 'tipo' => 'mapa', 'max' => 3000 ),
 		'direccion_o_punto_de_encuentro' => array( 'tipo' => 'textarea', 'max' => 300 ),
+		// Paso Ubicación, solo servicios (1.1.0)
+		'servicio_alcance'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Solo en mi localidad', 'Hasta cierta distancia', 'En toda la región', 'En todo el país' ) ),
+		'servicio_km'                   => array( 'tipo' => 'numero', 'min' => 1, 'max' => 500 ),
+		'servicio_zona_nota'            => array( 'tipo' => 'texto', 'max' => 150 ),
 		// Paso Contacto
 		'telefono_contacto'             => array( 'tipo' => 'tel', 'max' => 30 ),
 		'email-emp'                     => array( 'tipo' => 'email', 'max' => 100 ),
 		'url_sitio_web'                 => array( 'tipo' => 'url', 'max' => 300 ),
 		'instagramemp'                  => array( 'tipo' => 'instagram', 'max' => 200 ),
 		'facebookemp'                   => array( 'tipo' => 'facebook', 'max' => 300 ),
+		// Paso Contacto, solo servicios (1.1.0)
+		'servicio_publico'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
+		'telefono_publico'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
 		// Paso Otros datos
 		'idiomas'                       => array( 'tipo' => 'texto', 'max' => 200 ),
 		'que_visitar_actividades_zona'  => array( 'tipo' => 'textarea', 'max' => 1200 ),
@@ -574,12 +588,16 @@ function cl_panel_pasos() {
 			'clofal' => 'ofrece_alojamiento',
 			'clbral' => 'breve_descripcion_alojamiento',
 			'clpuev' => 'publica_eventos',
+			'clfcom' => 'ficha_completa',
 		),
 		'ubicacion'    => array(
 			'clregi' => 'region',
 			'clloca' => 'localidad',
 			'clmapa' => 'ubicacion',
 			'cldire' => 'direccion_o_punto_de_encuentro',
+			'clsalc' => 'servicio_alcance',
+			'clskm'  => 'servicio_km',
+			'clsnot' => 'servicio_zona_nota',
 		),
 		'contacto'     => array(
 			'cltele' => 'telefono_contacto',
@@ -587,6 +605,8 @@ function cl_panel_pasos() {
 			'clweb'  => 'url_sitio_web',
 			'clinst' => 'instagramemp',
 			'clface' => 'facebookemp',
+			'clspub' => 'servicio_publico',
+			'cltpub' => 'telefono_publico',
 		),
 		'otros'        => array(
 			'clidio' => 'idiomas', // casillas + "otros idiomas" (clidot), se juntan al guardar
@@ -1039,6 +1059,12 @@ function cl_panel_progreso( $id ) {
 	if ( ! cl_panel_recibe_visitantes( $id ) ) {
 		unset( $chk['cómo llegar'] );
 	}
+	// Ficha compacta (1.1.0): sin «Quiénes somos»; la foto puede ser el logo.
+	if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $id ) ) {
+		unset( $chk['quiénes somos'] );
+		$chk = array( 'foto o logo' => $chk['foto principal'] ) + $chk;
+		unset( $chk['foto principal'] );
+	}
 	$faltan = array();
 	foreach ( $chk as $k => $v ) {
 		if ( empty( $v ) ) {
@@ -1214,7 +1240,9 @@ function cl_panel_revision_chequeo( $id ) {
 	if ( $con_act ) {
 		$suger[] = array( 'Fotos de actividades', $act > 0, 'fotos' );
 	}
-	$suger[] = array( '¿Quiénes somos?', '' !== trim( (string) get_field( 'quienes_somos', $id, false ) ), 'presentacion' );
+	if ( ! function_exists( 'cl_es_servicio' ) || ! cl_es_servicio( $id ) ) {
+		$suger[] = array( '¿Quiénes somos?', '' !== trim( (string) get_field( 'quienes_somos', $id, false ) ), 'presentacion' );
+	}
 	return array( $oblig, $suger );
 }
 

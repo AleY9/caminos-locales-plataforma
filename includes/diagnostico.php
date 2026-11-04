@@ -168,6 +168,8 @@ function clp_pagina() {
 			<p class="description">Apagado: los emprendedores publican al momento y te llega un aviso por correo (integrantes de confianza). Encendido: envían a revisión y publicás vos.</p>
 			<?php submit_button( 'Guardar', 'secondary', 'submit', false ); ?>
 		</form>
+		<?php clp_invitaciones_caja(); ?>
+		<?php clp_servicios_caja(); ?>
 		<?php clp_diseno_caja(); ?>
 		<p style="font-size:15px">
 			<span style="color:#00a32a">✓ <?php echo (int) ( $cuenta['ok'] ?? 0 ); ?> bien</span> ·

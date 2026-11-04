@@ -290,6 +290,13 @@ add_shortcode( 'cl_panel_fotos', function () {
 		<li>Fotos propias o con permiso de quien las sacó.</li>
 	</ul></div></details>
 
+	<?php if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $emp_id ) ) : // Ficha compacta (1.1.0): una sola imagen. ?>
+	<div class="clf-sec">
+		<?php echo $tarjeta( 'principal', 'Foto o logo', 'La que aparece en tu tarjeta de «Servicios locales»: vos trabajando, lo que hacés o tu logo.', true ); // phpcs:ignore ?>
+		<p class="clf-p">Con la ficha compacta alcanza con una imagen. Si querés mostrar más fotos, elegí la ficha completa en «Qué ofrecés».</p>
+	</div>
+</div>
+	<?php else : ?>
 	<div class="clf-sec">
 		<?php echo $tarjeta( 'principal', 'Foto principal', 'La portada de tu ficha y de la tarjeta del listado. La que mejor muestre el lugar.', true ); // phpcs:ignore ?>
 	</div>
@@ -314,6 +321,7 @@ add_shortcode( 'cl_panel_fotos', function () {
 		</div>
 	</div>
 </div>
+	<?php endif; ?>
 <script>
 (function(){
 var raiz=document.currentScript.previousElementSibling;if(!raiz||!raiz.classList.contains('clf'))return;
