@@ -583,11 +583,22 @@ add_action( 'wp_footer', function () {
 		e.preventDefault();
 		bricksOpenPopup(el, 0, { popupContextId: a.dataset.srvId, popupContextType: 'post' });
 	});
+	// 1.1.6: la imagen extra llega por AJAX; Bricks no le arma el lightbox. Se arma cuando aparece.
+	var pop = document.querySelector('.brx-popup[data-popup-id="' + POP + '"]');
+	if (pop && window.MutationObserver) {
+		new MutationObserver(function(){
+			var l = pop.querySelector('.cl-srv-ventana .bricks-lightbox:not([data-cl-pswp])');
+			if (!l || !window.bricksPhotoswipeFn || typeof bricksPhotoswipeFn.run !== 'function') { return; }
+			l.setAttribute('data-cl-pswp', '1');
+			bricksPhotoswipeFn.run();
+		}).observe(pop, { childList: true, subtree: true });
+	}
 })();
 </script>
 <style>
 .cl-srv-mapa iframe{display:block;width:100%!important;height:180px!important;border:0;border-radius:12px}
 .brx-popup:has(.cl-srv-ventana){z-index:100000!important}
+.pswp{z-index:100010!important}
 .brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:880px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;padding:0;border-radius:18px;background:#fff}
 @media (max-width:767px){
 	.brx-popup:has(.cl-srv-ventana){align-items:flex-end!important;justify-content:flex-end!important;padding:0!important}
