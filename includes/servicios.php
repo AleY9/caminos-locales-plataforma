@@ -167,7 +167,7 @@ add_filter( 'bricks/code/echo_function_names', function ( $names ) {
 	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa', 'cl_srv_ventana', 'cl_srv_facebook_url', 'cl_srv_curado' ) );
 } );
 
-// «Aiguá y hasta 30 km» · «Aiguá · toda la región Este» · «Aiguá · todo el país».
+// «Aiguá y hasta 30 km» · «Aiguá · región Este» · «Aiguá · todo el país». Sin «toda la» para las regiones (Ale, 05/11).
 function cl_srv_zona( $id = 0 ) {
 	$id   = $id ? (int) $id : get_the_ID();
 	$loc  = trim( (string) get_post_meta( $id, 'localidad', true ) );
@@ -180,7 +180,7 @@ function cl_srv_zona( $id = 0 ) {
 		case 'Hasta cierta distancia':
 			return $km ? trim( $base . ' y hasta ' . $km . ' km' ) : $base;
 		case 'En toda la región':
-			return $reg ? ( $loc ? $loc . ' · toda la región ' . $reg : 'Toda la región ' . $reg ) : $base;
+			return $reg ? ( $loc ? $loc . ' · región ' . $reg : 'Región ' . $reg ) : $base;
 		case 'En todo el país':
 			return $base ? $base . ' · todo el país' : 'Todo el país';
 		default:
