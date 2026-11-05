@@ -303,6 +303,8 @@ function cl_srv_icono( $slug ) {
 		'servicios-para-alojamientos' => '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
 		'construccion-y-oficios'      => '<path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0a2.12 2.12 0 0 1 0-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25v-.86L16.01 4.6a5.56 5.56 0 0 0-3.94-1.64H9l.92.82A6.18 6.18 0 0 1 12 8.4v1.56l2 2h2.47l2.26 1.91"/>',
 		'productos-locales'           => '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+		'salida-aloj'                 => '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+		'salida-exp'                  => '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/>',
 		'otro'                        => '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
 	);
 	$d = isset( $p[ $slug ] ) ? $p[ $slug ] : $p['otro'];
@@ -340,6 +342,11 @@ add_shortcode( 'cl_servicios_filtros', function () {
 				<?php if ( in_array( $t->slug, cl_srv_rubros_turismo(), true ) ) { continue; } ?>
 				<a href="<?php echo $url( $t->slug ); ?>" <?php echo $tipo === $t->slug ? 'aria-current="true"' : ''; ?>><?php echo cl_srv_icono( $t->slug ); ?><span><?php echo esc_html( $t->name ); ?></span></a>
 			<?php endforeach; ?>
+			<?php // 1.1.2: salidas a los listados de turismo (no filtran: llevan a otra página). ?>
+			<?php foreach ( array( array( 25999, 'Alojamientos', 'aloj' ), array( 10272, 'Experiencias', 'exp' ) ) as $sal ) : ?>
+				<?php $u = get_permalink( $sal[0] ); if ( ! $u ) { continue; } ?>
+				<a class="cl-srv-salida" href="<?php echo esc_url( $u ); ?>"><?php echo cl_srv_icono( 'salida-' . $sal[2] ); ?><span><?php echo esc_html( $sal[1] ); ?> →</span></a>
+			<?php endforeach; ?>
 		</nav>
 	</div>
 	<style>
@@ -350,6 +357,8 @@ add_shortcode( 'cl_servicios_filtros', function () {
 	.cl-srv-tipos a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:1px solid #c9c2b3;border-radius:999px;background:#fff;color:#1f4645;font-size:var(--cl-texto-s,16px);text-decoration:none;line-height:1.2}
 	.cl-srv-tipos a:hover{border-color:#1f4645}
 	.cl-srv-tipos a[aria-current]{background:#1f4645;border-color:#1f4645;color:#fff}
+	.cl-srv-tipos a.cl-srv-salida{border-style:dashed;border-color:#9a6055;color:#9a6055;background:transparent}
+	.cl-srv-tipos a.cl-srv-salida:hover{border-style:solid}
 	@media (max-width:767px){.cl-srv-tipos{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}.cl-srv-tipos a{flex:0 0 auto}.cl-srv-zona label{max-width:none}}
 	</style>
 	<?php
