@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.2 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,11 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.3
+* Rubros curados (cl_srv_rubros_curados): «Servicios para emprendimientos» (slug servicios-para-emprendimientos).
+  No aparece en «¿Qué ofrecés?», se asigna desde wp-admin y el panel no lo borra al guardar. En el directorio
+  público su filtro solo se ve para la red. Ícono propio (pantalla).
+
 1.1.2
 * «Ver cómo queda»: «Ocultar de la web» para una ficha publicada (vuelve a borrador, doble toque para
   confirmar, aviso al admin). Se vuelve a publicar con «Publicar» desde Mi panel.

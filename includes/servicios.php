@@ -25,6 +25,23 @@ function cl_srv_rubros_turismo() {
 	return array( 'alojamiento', 'actividades-y-experiencias' );
 }
 
+// 1.1.3: rubros curados por el admin (Liquen Web, y a futuro diseño, fotos o drones elegidos por Ale).
+// No están en «¿Qué ofrecés?»: solo se asignan desde wp-admin y el panel no los borra al guardar.
+function cl_srv_rubros_curados() {
+	return array( 'servicios-para-emprendimientos' );
+}
+
+function cl_srv_rubros_curados_ids() {
+	$ids = array();
+	foreach ( cl_srv_rubros_curados() as $slug ) {
+		$t = get_term_by( 'slug', $slug, 'rubro' );
+		if ( $t ) {
+			$ids[] = (int) $t->term_id;
+		}
+	}
+	return $ids;
+}
+
 function cl_srv_rubros( $id ) {
 	if ( ! $id || 'emprendimientos' !== get_post_type( $id ) ) {
 		return array();
@@ -305,6 +322,7 @@ function cl_srv_icono( $slug ) {
 		'productos-locales'           => '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
 		'salida-aloj'                 => '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
 		'salida-exp'                  => '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/>',
+		'servicios-para-emprendimientos' => '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="m14 7-4 6"/>',
 		'otro'                        => '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
 	);
 	$d = isset( $p[ $slug ] ) ? $p[ $slug ] : $p['otro'];
@@ -340,6 +358,7 @@ add_shortcode( 'cl_servicios_filtros', function () {
 			<a href="<?php echo $url( '' ); ?>" <?php echo $tipo ? '' : 'aria-current="true"'; ?>><?php echo cl_srv_icono( 'todos' ); ?><span>Todos</span></a>
 			<?php foreach ( (array) $rubs as $t ) : ?>
 				<?php if ( in_array( $t->slug, cl_srv_rubros_turismo(), true ) ) { continue; } ?>
+				<?php if ( in_array( $t->slug, cl_srv_rubros_curados(), true ) && ! cl_srv_es_red() ) { continue; } // 1.1.3 ?>
 				<a href="<?php echo $url( $t->slug ); ?>" <?php echo $tipo === $t->slug ? 'aria-current="true"' : ''; ?>><?php echo cl_srv_icono( $t->slug ); ?><span><?php echo esc_html( $t->name ); ?></span></a>
 			<?php endforeach; ?>
 			<?php // 1.1.2: salidas a los listados de turismo (no filtran: llevan a otra página). ?>
