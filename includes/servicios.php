@@ -154,6 +154,7 @@ add_action( 'acf/include_fields', function () {
 			array( 'key' => 'field_cl_srv_nota', 'name' => 'servicio_zona_nota', 'label' => 'Aclaración de la zona', 'type' => 'text', 'maxlength' => 150 ),
 			array( 'key' => 'field_cl_srv_publico', 'name' => 'servicio_publico', 'label' => 'Se muestra al público', 'type' => 'radio', 'choices' => array( 'Sí' => 'Sí, al público', 'No' => 'Solo a emprendedores de la red' ), 'default_value' => 'Sí', 'instructions' => 'Solo ficha compacta. Comida se muestra siempre.' ),
 			array( 'key' => 'field_cl_srv_tel', 'name' => 'telefono_publico', 'label' => 'Publicar el teléfono en la web', 'type' => 'radio', 'choices' => array( 'Sí' => 'Sí', 'No' => 'No' ), 'default_value' => 'No', 'instructions' => 'Solo ficha compacta. A los emprendedores de la red se les muestra siempre.' ),
+			array( 'key' => 'field_cl_srv_extra', 'name' => 'imagen_extra', 'label' => 'Imagen extra', 'type' => 'image', 'return_format' => 'id', 'preview_size' => 'medium', 'library' => 'all', 'instructions' => 'Solo ficha compacta (1.1.6). Opcional, vertical 4:5: un afiche o una foto. Se ve en la ventana, antes del mapa; si no hay foto principal, también en la tarjeta.' ),
 		),
 		'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'emprendimientos' ) ) ),
 		'position' => 'side',
