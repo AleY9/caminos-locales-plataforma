@@ -135,8 +135,18 @@ add_action( 'init', function () {
 // ---------- Campos ACF ----------
 
 function cl_srv_alcances() {
-	return array( 'Solo en mi localidad', 'Hasta cierta distancia', 'En toda la región', 'En todo el país' );
+	return array( 'Solo en mi localidad', 'Hasta cierta distancia', 'En mi región', 'En todo el país' );
 }
+
+// 1.1.8: «En toda la región» pasó a «En mi región». Se cambia una vez en las fichas que ya lo tenían.
+add_action( 'init', function () {
+	if ( get_option( 'clp_alcance_118' ) ) {
+		return;
+	}
+	global $wpdb;
+	$wpdb->update( $wpdb->postmeta, array( 'meta_value' => 'En mi región' ), array( 'meta_key' => 'servicio_alcance', 'meta_value' => 'En toda la región' ) );
+	update_option( 'clp_alcance_118', 1, false );
+} );
 
 add_action( 'acf/include_fields', function () {
 	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
@@ -179,7 +189,8 @@ function cl_srv_zona( $id = 0 ) {
 	switch ( $alc ) {
 		case 'Hasta cierta distancia':
 			return $km ? trim( $base . ' y hasta ' . $km . ' km' ) : $base;
-		case 'En toda la región':
+		case 'En mi región':
+		case 'En toda la región': // valor anterior a 1.1.8
 			return $reg ? ( $loc ? $loc . ' · región ' . $reg : 'Región ' . $reg ) : $base;
 		case 'En todo el país':
 			return $base ? $base . ' · todo el país' : 'Todo el país';

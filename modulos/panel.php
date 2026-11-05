@@ -541,7 +541,7 @@ function cl_panel_campos_permitidos() {
 		'ubicacion'                     => array( 'tipo' => 'mapa', 'max' => 3000 ),
 		'direccion_o_punto_de_encuentro' => array( 'tipo' => 'textarea', 'max' => 300 ),
 		// Paso Ubicación, solo servicios (1.1.0)
-		'servicio_alcance'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Solo en mi localidad', 'Hasta cierta distancia', 'En toda la región', 'En todo el país' ) ),
+		'servicio_alcance'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Solo en mi localidad', 'Hasta cierta distancia', 'En mi región', 'En todo el país' ) ),
 		'servicio_km'                   => array( 'tipo' => 'numero', 'min' => 1, 'max' => 500 ),
 		'servicio_zona_nota'            => array( 'tipo' => 'texto', 'max' => 150 ),
 		// Paso Contacto
