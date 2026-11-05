@@ -46,6 +46,8 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
 1.1.2
 * «Ver cómo queda»: «Ocultar de la web» para una ficha publicada (vuelve a borrador, doble toque para
   confirmar, aviso al admin). Se vuelve a publicar con «Publicar» desde Mi panel.
+* Servicios locales: al final de los filtros de tipo, «Alojamientos →» y «Experiencias →» (borde punteado):
+  no filtran, llevan a esos listados.
 
 1.1.1
 * Mapa desde el celular: además del código de «Insertar un mapa», se acepta el enlace de Compartir →
