@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.4 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,11 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.4
+* «¿Qué ofrecés?»: el admin ve y marca los rubros curados («… (curado, solo admin)», antes de «Otro»).
+* {echo:cl_srv_curado}: '1' si la ficha tiene un rubro curado. En Bricks, las tarjetas de Servicios locales y
+  Prestadores llevan data-srv-curado y se pintan en verde claro.
+
 1.1.3
 * Rubros curados (cl_srv_rubros_curados): «Servicios para emprendimientos» (slug servicios-para-emprendimientos).
   No aparece en «¿Qué ofrecés?», se asigna desde wp-admin y el panel no lo borra al guardar. En el directorio

@@ -42,6 +42,12 @@ function cl_srv_rubros_curados_ids() {
 	return $ids;
 }
 
+// {echo:cl_srv_curado} → '1' si la ficha tiene un rubro curado (tarjeta con otro color en Bricks).
+function cl_srv_curado( $id = 0 ) {
+	$id = $id ? (int) $id : get_the_ID();
+	return array_intersect( cl_srv_rubros( $id ), cl_srv_rubros_curados() ) ? '1' : '';
+}
+
 function cl_srv_rubros( $id ) {
 	if ( ! $id || 'emprendimientos' !== get_post_type( $id ) ) {
 		return array();
@@ -157,7 +163,7 @@ add_action( 'acf/include_fields', function () {
 // ---------- Datos para las tarjetas y la ficha ({echo:…}) ----------
 
 add_filter( 'bricks/code/echo_function_names', function ( $names ) {
-	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa', 'cl_srv_ventana', 'cl_srv_facebook_url' ) );
+	return array_merge( (array) $names, array( 'cl_srv_zona', 'cl_srv_zona_nota', 'cl_srv_tipo', 'cl_srv_tel', 'cl_srv_wa', 'cl_srv_es_red', 'cl_srv_completa', 'cl_srv_ventana', 'cl_srv_facebook_url', 'cl_srv_curado' ) );
 } );
 
 // «Aiguá y hasta 30 km» · «Aiguá · toda la región Este» · «Aiguá · todo el país».
@@ -444,6 +450,16 @@ add_action( 'wp_footer', function () {
 	$en_srv  = cl_srv_tiene_rubro_servicio( $id ) ? 1 : 0;
 	$compact = cl_es_servicio( $id ) ? 1 : 0;
 	$comida  = cl_srv_es_comida( $id ) ? 1 : 0;
+	// 1.1.4: el admin ve los rubros curados en «¿Qué ofrecés?».
+	$curados = array();
+	if ( current_user_can( 'manage_options' ) ) {
+		foreach ( cl_srv_rubros_curados() as $slug ) {
+			$t = get_term_by( 'slug', $slug, 'rubro' );
+			if ( $t ) {
+				$curados[] = array( 'id' => (string) $t->term_id, 'nombre' => $t->name, 'marcado' => has_term( (int) $t->term_id, 'rubro', $id ) );
+			}
+		}
+	}
 	?>
 <script>
 (function(){
@@ -484,6 +500,20 @@ add_action( 'wp_footer', function () {
 	// Contacto: visibilidad y teléfono solo con ficha compacta.
 	ver('clhsvc', CO); ver('cltpub', CO); ver('clspub', CO && !C);
 	// Qué ofrecés: «ficha completa» solo si no marcó Alojamiento ni Actividades.
+	// 1.1.4: rubros curados, solo para el admin (antes de «Otro»).
+	var CUR = <?php echo wp_json_encode( $curados ); ?>;
+	(function(){
+		var otro = document.querySelector('form.brxe-form input[name="form-field-clrubr[]"][value="213"]');
+		var li = otro && otro.closest('li');
+		if (!li) { return; }
+		CUR.forEach(function(c){
+			if (document.querySelector('form.brxe-form input[name="form-field-clrubr[]"][value="' + c.id + '"]')) { return; }
+			var n = li.cloneNode(true), inp = n.querySelector('input'), lab = n.querySelector('label');
+			inp.value = c.id; inp.checked = !!c.marcado; inp.id = (inp.id || 'clrubr') + '-cur' + c.id;
+			if (lab) { lab.setAttribute('for', inp.id); lab.textContent = c.nombre + ' (curado, solo admin)'; }
+			li.parentNode.insertBefore(n, li);
+		});
+	})();
 	var cajas = document.querySelectorAll('form.brxe-form input[name="form-field-clrubr[]"]');
 	if (cajas.length) {
 		var f = function(){
