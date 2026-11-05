@@ -1660,13 +1660,19 @@ add_shortcode( 'cl_panel_admin_emp', function () {
 	$id    = cl_panel_emp_id();
 	$todos = get_posts( array( 'post_type' => 'emprendimientos', 'post_status' => array( 'publish', 'draft', 'pending' ), 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
 	$est   = array( 'draft' => 'Borrador', 'pending' => 'En revisión' );
-	$h     = '<form class="clp-admin" method="get" action="' . esc_url( get_permalink( CL_PANEL_PAGE_ID ) ) . '" style="background:#fdf0d5;border:1px solid #e9d3a4;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px">';
+	// 1.1.10: el bloque suma «+ Nueva ficha», «Invitar al dueño» y el procedimiento (includes/invitaciones.php).
+	$h     = '<div id="clp-admin" style="background:#fdf0d5;border:1px solid #e9d3a4;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px">';
+	$h    .= '<form class="clp-admin" method="get" action="' . esc_url( get_permalink( CL_PANEL_PAGE_ID ) ) . '" style="display:flex;flex-direction:column;gap:8px">';
 	$h    .= '<label for="clp-emp" style="font-size:13px;font-weight:700;color:#6b4300">Carga asistida · estás como administrador</label>';
 	$h    .= '<select id="clp-emp" name="emp" onchange="this.form.submit()" style="height:44px;border:1px solid #c9a76a;border-radius:10px;padding:0 12px;font-size:16px;background:#fff"><option value="">Elegí un emprendimiento…</option>';
 	foreach ( $todos as $p ) {
 		$h .= '<option value="' . (int) $p->ID . '"' . selected( $id, $p->ID, false ) . '>' . esc_html( $p->post_title . ( isset( $est[ $p->post_status ] ) ? ' (' . $est[ $p->post_status ] . ')' : '' ) ) . '</option>';
 	}
-	return $h . '</select></form>';
+	$h .= '</select></form>';
+	if ( function_exists( 'clp_panel_admin_extra' ) ) {
+		$h .= clp_panel_admin_extra( $id );
+	}
+	return $h . '</div>';
 } );
 
 // 1.1.1: en el celular, la tira de pasos («Accesos a los pasos», Bricks #brxe-clpasn) arranca mostrando el paso actual.

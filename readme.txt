@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.9 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.10 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,12 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.10
+* Mi panel, bloque de carga asistida (solo administradores, [cl_panel_admin_emp]): «+ Nueva ficha» crea un
+  emprendimiento en borrador a nombre del administrador y abre el panel para completarlo; «Invitar al dueño»
+  crea el enlace ligado a esa ficha y lo muestra con «Mandar por WhatsApp»; si la ficha ya es de un emprendedor,
+  muestra quién es. Desplegable «Cómo cargar una ficha por alguien» con el procedimiento.
+
 1.1.9
 * Invitación para una ficha ya cargada (carga asistida): en Herramientas → Caminos Locales se elige la ficha
   al crear el enlace. Quien lo usa crea su cuenta y la ficha pasa a ser suya, con sus alojamientos,
