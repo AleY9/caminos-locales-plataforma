@@ -23,6 +23,8 @@ function cl_fotos_slots() {
 		'principal' => array( 'meta' => '_thumbnail_id', 'label' => 'Foto principal' ),
 		'logo'      => array( 'meta' => 'logo', 'key' => 'field_60788bd57d291', 'label' => 'Logo' ),
 		'quienes'   => array( 'meta' => 'foto_del_emprendimiento', 'key' => 'field_606cb589c744a', 'label' => '¿Quiénes somos?' ),
+		// 1.1.6: ficha compacta, imagen vertical 4:5 opcional (afiche o foto).
+		'extra'     => array( 'meta' => 'imagen_extra', 'key' => 'field_cl_srv_extra', 'label' => 'Imagen extra' ),
 	);
 	$pres = array( 'field_66fd8f9996ed1', 'field_66fd8f9996ed2', 'field_66fea9f7e3229' );
 	foreach ( $pres as $i => $k ) {
@@ -53,6 +55,22 @@ function cl_fotos_guardar( $emp_id, $slot, $att_id ) {
 		update_post_meta( $emp_id, '_' . $s['grupo'][0], $s['grupo'][1] );
 	}
 	return true;
+}
+
+// 1.1.6: en la ficha compacta publicada alcanza con una de las dos (foto principal o imagen extra):
+// no se puede quitar la que queda sola.
+function cl_fotos_sin_quitar( $emp_id, $slot ) {
+	if ( 'publish' !== get_post_status( $emp_id ) ) {
+		return false;
+	}
+	$compacta = function_exists( 'cl_es_servicio' ) && cl_es_servicio( $emp_id );
+	if ( 'principal' === $slot ) {
+		return ! ( $compacta && cl_fotos_leer( $emp_id, 'extra' ) );
+	}
+	if ( 'extra' === $slot && $compacta ) {
+		return ! cl_fotos_leer( $emp_id, 'principal' );
+	}
+	return false;
 }
 
 // ¿Se usa esta imagen en algún lado? (ante la duda, sí: no se borra)
@@ -133,8 +151,10 @@ add_action( 'wp_ajax_cl_foto', function () {
 	$vieja = cl_fotos_leer( $emp_id, $slot );
 
 	if ( 'quitar' === $op ) {
-		if ( 'principal' === $slot && 'publish' === get_post_status( $emp_id ) ) {
-			$error( 'La foto principal no se puede quitar de una ficha publicada: tocá Cambiar para poner otra.' );
+		if ( cl_fotos_sin_quitar( $emp_id, $slot ) ) {
+			$error( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $emp_id )
+				? 'Tu ficha está publicada y necesita al menos una imagen: tocá Cambiar para poner otra.'
+				: 'La foto principal no se puede quitar de una ficha publicada: tocá Cambiar para poner otra.' );
 		}
 		cl_fotos_guardar( $emp_id, $slot, 0 );
 		if ( $vieja ) {
@@ -228,13 +248,11 @@ add_shortcode( 'cl_panel_fotos', function () {
 	if ( ! $emp_id ) {
 		return '<p>Elegí un emprendimiento en <a href="/panel/">Mi panel</a>.</p>';
 	}
-	$publicada = 'publish' === get_post_status( $emp_id );
-
-	$tarjeta = function ( $slot, $label, $ayuda = '', $grande = false ) use ( $emp_id, $publicada ) {
+	$tarjeta = function ( $slot, $label, $ayuda = '', $grande = false ) use ( $emp_id ) {
 		$id  = cl_fotos_leer( $emp_id, $slot );
 		$url = $id ? cl_fotos_url( $id ) : '';
-		$sin_quitar = ( 'principal' === $slot && $publicada ) ? ' data-sinquitar="1"' : '';
-		$h  = '<div class="clf-slot' . ( $grande ? ' clf-grande' : '' ) . '" data-slot="' . esc_attr( $slot ) . '"' . $sin_quitar . '>';
+		$sin_quitar = cl_fotos_sin_quitar( $emp_id, $slot ) ? ' data-sinquitar="1"' : '';
+		$h  = '<div class="clf-slot' . ( $grande ? ' clf-grande' : '' ) . ( 'extra' === $slot ? ' clf-vertical' : '' ) . '" data-slot="' . esc_attr( $slot ) . '"' . $sin_quitar . '>';
 		$h .= '<div class="clf-lbl">' . esc_html( $label ) . '</div>';
 		if ( $ayuda ) {
 			$h .= '<div class="clf-ayuda">' . esc_html( $ayuda ) . '</div>';
@@ -268,6 +286,9 @@ add_shortcode( 'cl_panel_fotos', function () {
 .clf-ayuda{font-size:14px;line-height:1.4;color:#5b6a68}
 .clf-img{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#eeeae1;display:flex;align-items:center;justify-content:center}
 .clf-img img{width:100%;height:100%;object-fit:cover;display:block}
+.clf-dos{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:560px){.clf-dos{grid-template-columns:minmax(0,3fr) minmax(0,2fr);align-items:start}}
+.clf-vertical .clf-img{aspect-ratio:4/5}
 .clf-vacio{font-size:14px;color:#7a8583}
 .clf-estado{position:absolute;inset:auto 0 0 0;background:rgba(31,70,69,.88);color:#fff;font-size:14px;font-weight:700;padding:8px 10px;text-align:center}
 .clf-btns{display:flex;gap:8px;flex-wrap:wrap}
@@ -281,7 +302,7 @@ add_shortcode( 'cl_panel_fotos', function () {
 .clf summary{min-height:44px;display:flex;align-items:center;font-weight:700;color:#1f4645;cursor:pointer}
 .clf details div{padding:0 0 14px;font-size:14px;line-height:1.45;color:#3d4b49}
 </style>
-<div class="clf" data-emp="<?php echo (int) $emp_id; ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'cl_fotos_' . $emp_id ) ); ?>" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
+<div class="clf" data-pub="<?php echo 'publish' === get_post_status( $emp_id ) ? '1' : ''; ?>" data-emp="<?php echo (int) $emp_id; ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'cl_fotos_' . $emp_id ) ); ?>" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
 	<p class="clf-p">Subí las fotos tal como salen del celular: nosotros las achicamos y optimizamos. Cada foto se guarda sola, apenas termina de subir.</p>
 	<details><summary>? Qué fotos funcionan mejor</summary><div><ul>
 		<li><strong>Horizontales</strong> y con luz natural (mañana temprano o atardecer).</li>
@@ -292,7 +313,10 @@ add_shortcode( 'cl_panel_fotos', function () {
 
 	<?php if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $emp_id ) ) : // Ficha compacta (1.1.0): una sola imagen. ?>
 	<div class="clf-sec">
-		<?php echo $tarjeta( 'principal', 'Foto o logo', 'La que aparece en tu tarjeta de «Servicios locales»: vos trabajando, lo que hacés o tu logo.', true ); // phpcs:ignore ?>
+		<div class="clf-dos">
+			<?php echo $tarjeta( 'principal', 'Foto o logo', 'La que aparece en tu tarjeta de «Servicios locales»: vos trabajando, lo que hacés o tu logo.', true ); // phpcs:ignore ?>
+			<?php echo $tarjeta( 'extra', 'Imagen extra (opcional)', 'Un afiche o una foto vertical (4:5) que se ve al abrir tu ficha. Si tiene fecha, acordate de sacarlo cuando pase.' ); // phpcs:ignore ?>
+		</div>
 		<p class="clf-p">Con la ficha compacta alcanza con una imagen. Si querés mostrar más fotos, elegí la ficha completa en «Qué ofrecés».</p>
 	</div>
 </div>
@@ -349,6 +373,14 @@ function enviar(slot,datos,progreso){
 		x.send(datos);
 	});
 }
+// 1.1.6: ficha compacta publicada → no se puede quitar la imagen que queda sola (foto o logo / imagen extra).
+var PUB=raiz.dataset.pub==='1',COMP=!!raiz.querySelector('.clf-slot[data-slot="extra"]');
+function par(){
+	if(!PUB||!COMP)return;
+	var p=raiz.querySelector('.clf-slot[data-slot="principal"]'),x=raiz.querySelector('.clf-slot[data-slot="extra"]');
+	var tp=!!p.querySelector('.clf-img img'),tx=!!x.querySelector('.clf-img img');
+	[[p,tp,tx],[x,tx,tp]].forEach(function(a){var sola=a[1]&&!a[2];a[0].dataset.sinquitar=sola?'1':'';var q=a[0].querySelector('.clf-quitar');q.hidden=!a[1]||sola;});
+}
 raiz.querySelectorAll('.clf-slot').forEach(function(el){
 	var slot=el.dataset.slot,input=el.querySelector('input[type=file]'),txt=el.querySelector('.clf-subir span'),
 		quitar=el.querySelector('.clf-quitar'),caja=el.querySelector('.clf-img'),estado=el.querySelector('.clf-estado'),err=el.querySelector('.clf-error');
@@ -365,14 +397,14 @@ raiz.querySelectorAll('.clf-slot').forEach(function(el){
 		achicar(f,slot).then(function(archivo){
 			var d=new FormData();d.append('op','subir');d.append('foto',archivo,archivo.name||'foto.jpg');
 			return enviar(slot,d,function(p){estado.textContent=p<100?'Subiendo… '+p+' %':'Optimizando…';});
-		}).then(function(r){ocupado(false);if(r.ok){mostrar(r.url);}else{falla(r.msg);}});
+		}).then(function(r){ocupado(false);if(r.ok){mostrar(r.url);par();}else{falla(r.msg);}});
 	});
 	var tQ;
 	quitar.addEventListener('click',function(){
 		if(!quitar.classList.contains('clf-seguro')){quitar.classList.add('clf-seguro');quitar.textContent='¿Seguro? Tocá de nuevo';clearTimeout(tQ);tQ=setTimeout(function(){quitar.classList.remove('clf-seguro');quitar.textContent='Quitar';},4000);return;}
 		clearTimeout(tQ);quitar.classList.remove('clf-seguro');quitar.textContent='Quitar';err.hidden=true;ocupado(true,'Quitando…');
 		var d=new FormData();d.append('op','quitar');
-		enviar(slot,d).then(function(r){ocupado(false);if(r.ok){mostrar('');}else{falla(r.msg);}});
+		enviar(slot,d).then(function(r){ocupado(false);if(r.ok){mostrar('');par();}else{falla(r.msg);}});
 	});
 });
 })();

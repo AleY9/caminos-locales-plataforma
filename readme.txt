@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.5 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.6 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,14 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.6
+* Ficha compacta: «Imagen extra (opcional)», vertical 4:5 (afiche o foto), campo ACF imagen_extra
+  (field_cl_srv_extra, grupo group_cl_servicio). En el panel, segunda tarjeta del paso Fotos.
+* Se puede publicar con la foto principal o con la imagen extra; en una ficha publicada no se puede quitar
+  la que queda sola.
+* En Bricks: la ventana muestra la imagen antes del mapa (con lightbox); las tarjetas de Servicios locales y
+  Prestadores la usan si no hay foto principal.
+
 1.1.5
 * {echo:cl_srv_tel} con formato (+598 99 247 249) en las tarjetas de Prestadores.
 

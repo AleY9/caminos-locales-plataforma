@@ -1069,7 +1069,7 @@ function cl_panel_progreso( $id ) {
 	// Ficha compacta (1.1.0): sin «Quiénes somos»; la foto puede ser el logo.
 	if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $id ) ) {
 		unset( $chk['quiénes somos'] );
-		$chk = array( 'foto o logo' => $chk['foto principal'] ) + $chk;
+		$chk = array( 'foto o logo' => $chk['foto principal'] ? $chk['foto principal'] : get_post_meta( $id, 'imagen_extra', true ) ) + $chk;
 		unset( $chk['foto principal'] );
 	}
 	$faltan = array();
@@ -1237,6 +1237,10 @@ function cl_panel_revision_chequeo( $id ) {
 		array( 'Teléfono o email', '' !== trim( $tel_mail ), 'contacto' ),
 		array( 'Foto principal', (bool) get_post_thumbnail_id( $id ), 'fotos' ),
 	);
+	// 1.1.6: la ficha compacta puede publicarse con la foto principal o con la imagen extra.
+	if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $id ) ) {
+		$oblig[ count( $oblig ) - 1 ] = array( 'Foto o imagen extra', get_post_thumbnail_id( $id ) || (int) get_post_meta( $id, 'imagen_extra', true ), 'fotos' );
+	}
 	if ( $con_act ) {
 		array_splice( $oblig, 4, 0, array( array( '¿Qué se puede hacer en tu lugar?', ! empty( $cats ), 'actividades' ) ) );
 	}

@@ -154,6 +154,7 @@ add_action( 'acf/include_fields', function () {
 			array( 'key' => 'field_cl_srv_nota', 'name' => 'servicio_zona_nota', 'label' => 'Aclaración de la zona', 'type' => 'text', 'maxlength' => 150 ),
 			array( 'key' => 'field_cl_srv_publico', 'name' => 'servicio_publico', 'label' => 'Se muestra al público', 'type' => 'radio', 'choices' => array( 'Sí' => 'Sí, al público', 'No' => 'Solo a emprendedores de la red' ), 'default_value' => 'Sí', 'instructions' => 'Solo ficha compacta. Comida se muestra siempre.' ),
 			array( 'key' => 'field_cl_srv_tel', 'name' => 'telefono_publico', 'label' => 'Publicar el teléfono en la web', 'type' => 'radio', 'choices' => array( 'Sí' => 'Sí', 'No' => 'No' ), 'default_value' => 'No', 'instructions' => 'Solo ficha compacta. A los emprendedores de la red se les muestra siempre.' ),
+			array( 'key' => 'field_cl_srv_extra', 'name' => 'imagen_extra', 'label' => 'Imagen extra', 'type' => 'image', 'return_format' => 'id', 'preview_size' => 'medium', 'library' => 'all', 'instructions' => 'Solo ficha compacta (1.1.6). Opcional, vertical 4:5: un afiche o una foto. Se ve en la ventana, antes del mapa; si no hay foto principal, también en la tarjeta.' ),
 		),
 		'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'emprendimientos' ) ) ),
 		'position' => 'side',
@@ -582,11 +583,22 @@ add_action( 'wp_footer', function () {
 		e.preventDefault();
 		bricksOpenPopup(el, 0, { popupContextId: a.dataset.srvId, popupContextType: 'post' });
 	});
+	// 1.1.6: la imagen extra llega por AJAX; Bricks no le arma el lightbox. Se arma cuando aparece.
+	var pop = document.querySelector('.brx-popup[data-popup-id="' + POP + '"]');
+	if (pop && window.MutationObserver) {
+		new MutationObserver(function(){
+			var l = pop.querySelector('.cl-srv-ventana .bricks-lightbox:not([data-cl-pswp])');
+			if (!l || !window.bricksPhotoswipeFn || typeof bricksPhotoswipeFn.run !== 'function') { return; }
+			l.setAttribute('data-cl-pswp', '1');
+			bricksPhotoswipeFn.run();
+		}).observe(pop, { childList: true, subtree: true });
+	}
 })();
 </script>
 <style>
 .cl-srv-mapa iframe{display:block;width:100%!important;height:180px!important;border:0;border-radius:12px}
 .brx-popup:has(.cl-srv-ventana){z-index:100000!important}
+.pswp{z-index:100010!important}
 .brx-popup:has(.cl-srv-ventana) .brx-popup-content{width:880px;max-width:calc(100vw - 32px);max-height:88vh;overflow-y:auto;padding:0;border-radius:18px;background:#fff}
 @media (max-width:767px){
 	.brx-popup:has(.cl-srv-ventana){align-items:flex-end!important;justify-content:flex-end!important;padding:0!important}
