@@ -1303,6 +1303,31 @@ add_action( 'template_redirect', function () {
 	cl_panel_publicar_o_enviar( $id );
 }, 1 );
 
+// 1.1.2: «Ocultar de la web» en «Ver cómo queda»: la ficha publicada vuelve a borrador.
+add_action( 'template_redirect', function () {
+	if ( empty( $_POST['cl_ocultar_emp'] ) || ! cl_panel_puede_usar() ) {
+		return;
+	}
+	$id = cl_panel_emp_id( isset( $_POST['emp'] ) ? (int) $_POST['emp'] : null );
+	if ( ! $id || ! isset( $_POST['_clnonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['_clnonce'] ), 'cl_ocultar_' . $id ) ) {
+		return;
+	}
+	$vuelta = current_user_can( 'manage_options' ) ? home_url( '/panel/emprendimiento/?paso=vista&emp=' . $id ) : home_url( '/panel/emprendimiento/?paso=vista' . cl_panel_qs( $id ) );
+	if ( 'publish' === get_post_status( $id ) ) {
+		wp_update_post( array( 'ID' => $id, 'post_status' => 'draft' ) );
+		$user = wp_get_current_user();
+		wp_mail(
+			get_option( 'admin_email' ),
+			'[Caminos Locales] Ficha oculta: ' . get_the_title( $id ),
+			'El emprendimiento «' . get_the_title( $id ) . '» se ocultó desde el panel (quedó en borrador).' . "\n" .
+			'Usuario: ' . $user->user_login . "\n\n" .
+			'Editar: ' . admin_url( 'post.php?post=' . $id . '&action=edit' )
+		);
+	}
+	wp_safe_redirect( add_query_arg( 'oculta', 1, $vuelta ) );
+	exit;
+}, 1 );
+
 // URL del botón «Publicar» de Mi panel.
 function cl_panel_url_publicar( $id ) {
 	return add_query_arg( array( 'cl_publicar' => $id, '_clnonce' => wp_create_nonce( 'cl_publicar_' . $id ) ), get_permalink( CL_PANEL_PAGE_ID ) );
@@ -1431,7 +1456,9 @@ add_shortcode( 'cl_panel_vista', function () {
 .clv .clv-btn[disabled]{background:#c9c2b3;cursor:not-allowed}
 </style>
 <div class="clv">
-	<?php if ( ! empty( $_GET['publicada'] ) && 'publish' === $estado ) : ?>
+	<?php if ( ! empty( $_GET['oculta'] ) && 'draft' === $estado ) : ?>
+		<div class="clv-msg clv-info"><strong>Listo, tu ficha ya no se ve en la web.</strong><br>Quedó en borrador. Para mostrarla de nuevo, tocá «Publicar».</div>
+	<?php elseif ( ! empty( $_GET['publicada'] ) && 'publish' === $estado ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo, tu ficha ya está publicada! ✓</strong><br>Ya se ve en Caminos Locales. Podés seguir cambiándola cuando quieras.</div>
 	<?php elseif ( ! empty( $_GET['enviado'] ) ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo, la enviaste! ✓</strong><br>Tu ficha está en revisión. Te avisamos por email cuando esté publicada, normalmente en 1 o 2 días.</div>
@@ -1490,6 +1517,17 @@ add_shortcode( 'cl_panel_vista', function () {
 		<?php endif; ?>
 	<?php else : ?>
 		<div class="clv-msg clv-info">Tu ficha está publicada: lo que guardás se ve en la web al momento.<?php echo cl_sin_revision() ? '' : ' El cambio de nombre o de email lo revisamos antes.'; ?></div>
+		<?php // 1.1.2: volver a borrador desde el panel. ?>
+		<div class="clv-box">
+			<h3 class="clv-h">Más opciones</h3>
+			<p style="font-size:15px;line-height:1.45;color:#3d4b49;margin:0 0 8px">Si querés sacarla de la web un tiempo, ocultala: queda en borrador y la volvés a publicar cuando quieras desde Mi panel.</p>
+			<form method="post">
+				<input type="hidden" name="cl_ocultar_emp" value="1">
+				<input type="hidden" name="emp" value="<?php echo (int) $id; ?>">
+				<?php wp_nonce_field( 'cl_ocultar_' . $id, '_clnonce', false ); ?>
+				<button type="submit" class="clv-link" style="width:100%;cursor:pointer;font-family:inherit;font-size:16px" onclick="if(!this.dataset.ok){this.dataset.ok=1;this.textContent='¿Seguro? Tocá de nuevo';return false;}">Ocultar de la web</button>
+			</form>
+		</div>
 	<?php endif; ?>
 
 	<?php if ( $es_admin && 'publish' !== $estado ) : ?>
