@@ -247,7 +247,11 @@ function cl_srv_tel( $id = 0 ) {
 		return '';
 	}
 	$publico = ! cl_es_servicio( $id ) || 'Sí' === get_post_meta( $id, 'telefono_publico', true );
-	return ( $publico || cl_srv_es_red() ) ? $tel : '';
+	if ( ! $publico && ! cl_srv_es_red() ) {
+		return '';
+	}
+	// 1.1.5: con formato (+598 99 247 249), igual que en la ventana.
+	return function_exists( 'cl_tel_mostrar' ) && cl_tel_mostrar( $id ) ? cl_tel_mostrar( $id ) : $tel;
 }
 
 // Enlace de WhatsApp para el teléfono visible (vacío si no hay).
