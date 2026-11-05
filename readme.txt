@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.1 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,15 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.1
+* Mapa desde el celular: además del código de «Insertar un mapa», se acepta el enlace de Compartir →
+  Copiar enlace de Google Maps (maps.app.goo.gl o google.com/maps/place). Se guarda como mapa con el pin.
+* Mi panel: botón «Publicar» junto al chip «Borrador» (cl_pi('puede_publicar'), cl_pi('url_publicar'),
+  cl_pi('txt_publicar')). Si falta algo obligatorio, lleva a «Ver cómo queda» con lo que falta.
+* «Qué ofrecés»: con Alojamiento o Actividades se avisa que la ficha es completa (antes el selector
+  desaparecía sin explicación).
+* Tira de pasos del emprendimiento: en el celular arranca mostrando el paso actual.
+
 1.1.0
 * Invitaciones de un solo uso (Herramientas → Caminos Locales → «Invitar a sumarse»): enlace por WhatsApp,
   vence a los 14 días y sirve una vez. Alta con nombre, emprendimiento, email, WhatsApp y contraseña repetida;

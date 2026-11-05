@@ -741,9 +741,9 @@ function cl_panel_limpiar( $campo, $valor ) {
 		case 'mapa':
 			$v = trim( $valor );
 			if ( '' !== $v ) {
-				$v = function_exists( 'cl_mapa_extraer_url' ) ? cl_mapa_extraer_url( $v ) : '';
+				$v = function_exists( 'cl_mapa_normalizar' ) ? cl_mapa_normalizar( $v ) : '';
 				if ( '' === $v ) {
-					return array( null, 'El mapa no es válido. En Google Maps tocá Compartir → Insertar un mapa → Copiar HTML, y pegalo entero.' );
+					return array( null, 'No pudimos leer el mapa. En Google Maps buscá el lugar, tocá Compartir → Copiar enlace y pegalo acá. Desde la compu también sirve Compartir → Insertar un mapa.' );
 				}
 			}
 			return array( $v, '' );
@@ -1288,6 +1288,28 @@ add_action( 'template_redirect', function () {
 	if ( ! $id || ! isset( $_POST['_clnonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['_clnonce'] ), 'cl_enviar_' . $id ) ) {
 		return;
 	}
+	cl_panel_publicar_o_enviar( $id );
+}, 1 );
+
+// 1.1.1: «Publicar» desde Mi panel (enlace con nonce). Si falta algo obligatorio, lleva a «Ver cómo queda».
+add_action( 'template_redirect', function () {
+	if ( empty( $_GET['cl_publicar'] ) || ! cl_panel_puede_usar() ) {
+		return;
+	}
+	$id = cl_panel_emp_id( (int) $_GET['cl_publicar'] );
+	if ( ! $id || (int) $_GET['cl_publicar'] !== $id || ! isset( $_GET['_clnonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['_clnonce'] ), 'cl_publicar_' . $id ) ) {
+		return;
+	}
+	cl_panel_publicar_o_enviar( $id );
+}, 1 );
+
+// URL del botón «Publicar» de Mi panel.
+function cl_panel_url_publicar( $id ) {
+	return add_query_arg( array( 'cl_publicar' => $id, '_clnonce' => wp_create_nonce( 'cl_publicar_' . $id ) ), get_permalink( CL_PANEL_PAGE_ID ) );
+}
+
+// Publica (sin revisión) o envía a revisión, y redirige a «Ver cómo queda» con el resultado.
+function cl_panel_publicar_o_enviar( $id ) {
 	$vuelta = home_url( '/panel/emprendimiento/?paso=vista' . cl_panel_qs( $id ) );
 	$vuelta = current_user_can( 'manage_options' ) ? add_query_arg( 'paso', 'vista', home_url( '/panel/emprendimiento/?emp=' . $id ) ) : $vuelta;
 	$estado_antes = get_post_status( $id );
@@ -1328,7 +1350,7 @@ add_action( 'template_redirect', function () {
 	);
 	wp_safe_redirect( add_query_arg( 'enviado', 1, $vuelta ) );
 	exit;
-}, 1 );
+}
 
 // Cuando el admin publica una ficha que estaba en revisión, se le avisa al emprendedor.
 add_action( 'transition_post_status', function ( $nuevo, $viejo, $post ) {
@@ -1545,6 +1567,14 @@ function cl_pi( $dato ) {
 			}
 			$m = array( 'publish' => 'Publicada', 'pending' => 'En revisión', 'draft' => 'Borrador' );
 			return $m[ $e ];
+		case 'puede_publicar':
+			// 1.1.1: botón «Publicar» junto al chip de estado (borrador, o en revisión si ya no hay revisión).
+			$e = get_post_status( $id );
+			return ( 'draft' === $e || ( 'pending' === $e && cl_sin_revision() ) ) ? '1' : '';
+		case 'url_publicar':
+			return esc_url( cl_panel_url_publicar( $id ) );
+		case 'txt_publicar':
+			return cl_sin_revision() ? 'Publicar' : 'Enviar a revisión';
 		case 'recibe':
 			return cl_panel_recibe_visitantes( $id ) ? '1' : '';
 		case 'url_emp':
@@ -1590,3 +1620,18 @@ add_shortcode( 'cl_panel_admin_emp', function () {
 	return $h . '</select></form>';
 } );
 
+// 1.1.1: en el celular, la tira de pasos («Accesos a los pasos», Bricks #brxe-clpasn) arranca mostrando el paso actual.
+add_action( 'wp_footer', function () {
+	if ( ! is_page() || ! cl_panel_es_pagina( get_queried_object_id() ) ) {
+		return;
+	}
+	?>
+<script>(function(){
+	var n = document.getElementById('brxe-clpasn');
+	if (!n || n.scrollWidth <= n.clientWidth) { return; }
+	var p = n.getAttribute('data-actual') || 'actividades', a = null;
+	[].forEach.call(n.querySelectorAll('a[data-paso]'), function(x){ if (x.getAttribute('data-paso') === p) { a = x; } });
+	if (a) { n.scrollLeft += a.getBoundingClientRect().left - n.getBoundingClientRect().left - (n.clientWidth - a.offsetWidth) / 2; }
+})();</script>
+	<?php
+}, 40 );

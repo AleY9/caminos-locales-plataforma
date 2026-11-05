@@ -40,6 +40,78 @@ function cl_mapa_extraer_url( $valor ) {
 	return $ok ? $valor : '';
 }
 
+/*
+ * 1.1.1: también acepta el enlace de «Compartir» de Google Maps (lo que da el celular:
+ * https://maps.app.goo.gl/…, o un enlace https://www.google.com/maps/place/…).
+ * Se convierte en un mapa ?q=lat,lng&output=embed, que cl_mapa_extraer_url() ya acepta.
+ * Solo se usa al guardar (puede consultar a Google para abrir el enlace corto).
+ */
+function cl_mapa_normalizar( $valor ) {
+	$url = cl_mapa_extraer_url( $valor );
+	if ( $url ) {
+		return $url;
+	}
+	$valor = html_entity_decode( trim( (string) $valor ), ENT_QUOTES );
+	// Al compartir desde el celular suele venir «Nombre del lugar» + el enlace: se toma el enlace.
+	if ( ! preg_match( '#https?://[^\s"\'<>]+#i', $valor, $m ) ) {
+		return '';
+	}
+	$enlace = $m[0];
+	if ( ! cl_mapa_host_ok( $enlace ) ) {
+		return '';
+	}
+	$clave = 'cl_mapa_' . md5( $enlace );
+	$hecho = get_transient( $clave );
+	if ( false !== $hecho ) {
+		return (string) $hecho;
+	}
+	// Enlace corto: se siguen las redirecciones (solo hacia Google) hasta la dirección larga.
+	for ( $i = 0; $i < 5 && preg_match( '#^https?://(maps\.app\.goo\.gl|goo\.gl)/#i', $enlace ); $i++ ) {
+		$r = wp_safe_remote_get( $enlace, array( 'redirection' => 0, 'timeout' => 8, 'user-agent' => 'Mozilla/5.0 (compatible; CaminosLocales/1.0)' ) );
+		if ( is_wp_error( $r ) ) {
+			return '';
+		}
+		$sig = wp_remote_retrieve_header( $r, 'location' );
+		if ( is_array( $sig ) ) {
+			$sig = end( $sig );
+		}
+		if ( ! $sig || ! cl_mapa_host_ok( $sig ) ) {
+			break;
+		}
+		$enlace = $sig;
+	}
+	$embed = cl_mapa_embed_desde_enlace( rawurldecode( $enlace ) );
+	set_transient( $clave, $embed, $embed ? MONTH_IN_SECONDS : 10 * MINUTE_IN_SECONDS );
+	return $embed;
+}
+
+function cl_mapa_host_ok( $url ) {
+	$h = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+	return in_array( $h, array( 'maps.app.goo.gl', 'goo.gl', 'maps.google.com', 'google.com', 'www.google.com', 'google.com.uy', 'www.google.com.uy' ), true );
+}
+
+// Dirección larga de Google Maps → URL de embed, o ''.
+function cl_mapa_embed_desde_enlace( $enlace ) {
+	$q = '';
+	if ( preg_match( '/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/', $enlace, $m ) ) {          // el pin del lugar
+		$q = round( (float) $m[1], 6 ) . ',' . round( (float) $m[2], 6 );
+	} elseif ( preg_match( '#[?&](?:q|query|ll|center|daddr)=(-?\d{1,3}\.\d+),\s*\+?(-?\d{1,3}\.\d+)#', $enlace, $m ) ) {
+		$q = round( (float) $m[1], 6 ) . ',' . round( (float) $m[2], 6 );
+	} elseif ( preg_match( '#/maps/search/(-?\d{1,3}\.\d+),\s*\+?(-?\d{1,3}\.\d+)#', $enlace, $m ) ) {
+		$q = round( (float) $m[1], 6 ) . ',' . round( (float) $m[2], 6 );
+	} elseif ( preg_match( '#@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)#', $enlace, $m ) ) {          // centro de la vista
+		$q = round( (float) $m[1], 6 ) . ',' . round( (float) $m[2], 6 );
+	} elseif ( preg_match( '#/maps/place/([^/@?]+)#', $enlace, $m ) ) {                      // solo el nombre
+		$q = trim( str_replace( '+', ' ', $m[1] ) );
+	} elseif ( preg_match( '#[?&]q=([^&]+)#', $enlace, $m ) ) {
+		$q = trim( str_replace( '+', ' ', $m[1] ) );
+	}
+	if ( '' === $q || mb_strlen( $q ) > 200 ) {
+		return '';
+	}
+	return 'https://maps.google.com/maps?q=' . rawurlencode( $q ) . '&z=15&output=embed';
+}
+
 function cl_mapa_campo( $post_id ) {
 	return 'alojamiento' === get_post_type( $post_id ) ? 'ubicacion_alojamiento' : 'ubicacion';
 }
@@ -127,13 +199,13 @@ foreach ( array( 'ubicacion', 'ubicacion_alojamiento' ) as $cl_campo_mapa ) {
 		if ( true !== $valid || '' === trim( (string) $value ) ) {
 			return $valid;
 		}
-		return cl_mapa_extraer_url( $value )
+		return cl_mapa_normalizar( $value )
 			? $valid
-			: 'Pegá el código de Google Maps (Compartir → Insertar un mapa) o su enlace https://www.google.com/maps/embed?pb=...';
+			: 'Pegá el enlace de Google Maps (Compartir → Copiar enlace) o el código de Compartir → Insertar un mapa.';
 	}, 10, 2 );
 
 	add_filter( "acf/update_value/name={$cl_campo_mapa}", function ( $value ) {
-		return cl_mapa_extraer_url( $value );
+		return cl_mapa_normalizar( $value );
 	} );
 }
 

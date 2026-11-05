@@ -462,6 +462,19 @@ add_action( 'wp_footer', function () {
 			var sel = [].filter.call(cajas, function(c){ return c.checked; }).map(function(c){ return c.value; });
 			var on = sel.length && !sel.some(function(v){ return TUR.indexOf(v) > -1; });
 			ver('clhfco', on); ver('clfcom', on);
+			// 1.1.1: con Alojamiento o Actividades la ficha es siempre completa; se avisa en lugar de esconder sin más.
+			var ho = g('clhfco');
+			if (ho) {
+				var nota = document.getElementById('cl-fco-nota');
+				if (!nota) {
+					nota = document.createElement('p');
+					nota.id = 'cl-fco-nota';
+					nota.style.cssText = 'font-size:15px;line-height:1.5;color:#3d4b49;margin:0 0 20px';
+					nota.textContent = 'Con Alojamiento o Actividades y experiencias tu ficha es completa. Si los desmarcás, podés elegir la ficha compacta.';
+					ho.parentNode.insertBefore(nota, ho);
+				}
+				nota.style.display = (sel.length && !on) ? '' : 'none';
+			}
 			// Temas: no se muestran en la ficha compacta.
 			var fc = document.querySelector('form.brxe-form [name="form-field-clfcom"]:checked');
 			var comp = on && (!fc || fc.value === 'No');

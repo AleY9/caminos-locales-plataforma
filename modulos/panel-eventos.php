@@ -523,11 +523,11 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	$mapa = '';
 	if ( $otro && '' !== trim( $v( 'clevub' ) ) ) {
 		if ( mb_strlen( $v( 'clevub' ) ) > 3000 ) {
-			return $error( 'El código del mapa es demasiado largo. Copiá solo el de «Insertar un mapa».' );
+			return $error( 'El mapa es demasiado largo. Pegá solo el enlace de Compartir → Copiar enlace.' );
 		}
-		$mapa = function_exists( 'cl_mapa_extraer_url' ) ? (string) cl_mapa_extraer_url( trim( $v( 'clevub' ) ) ) : '';
+		$mapa = function_exists( 'cl_mapa_normalizar' ) ? (string) cl_mapa_normalizar( trim( $v( 'clevub' ) ) ) : '';
 		if ( '' === $mapa ) {
-			return $error( 'El mapa no es válido. En Google Maps tocá Compartir → Insertar un mapa → Copiar HTML, y pegalo entero.' );
+			return $error( 'No pudimos leer el mapa. En Google Maps buscá el lugar, tocá Compartir → Copiar enlace y pegalo acá. Desde la compu también sirve Compartir → Insertar un mapa.' );
 		}
 	}
 
