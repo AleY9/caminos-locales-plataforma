@@ -234,6 +234,127 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 
 // ---------- Herramientas → Caminos Locales: crear y ver invitaciones ----------
 
+// Crea una invitación y devuelve su enlace. $ficha: emprendimiento ya cargado que se entrega (1.1.9) o 0.
+function clp_inv_crear( $nota, $ficha = 0 ) {
+	$token = wp_generate_password( 32, false, false );
+	$todas = clp_inv_todas();
+	$enlace = add_query_arg( 'inv', $token, home_url( '/invitacion/' ) );
+	$todas[ hash( 'sha256', $token ) ] = array(
+		'nota'   => '' === $nota ? 'Sin nombre' : mb_substr( $nota, 0, 80 ),
+		'creado' => time(),
+		'vence'  => time() + CLP_INV_DIAS * DAY_IN_SECONDS,
+		'usado'  => 0,
+		'ficha'  => ( $ficha && 'emprendimientos' === get_post_type( $ficha ) ) ? (int) $ficha : 0,
+		// El enlace completo se guarda solo para poder volver a copiarlo (solo administradores).
+		'enlace' => $enlace,
+	);
+	update_option( 'clp_invitaciones', $todas, false );
+	return $enlace;
+}
+
+// 1.1.10: invitación vigente (sin usar ni vencida) para una ficha, o null.
+function clp_inv_de_ficha( $ficha ) {
+	foreach ( clp_inv_todas() as $v ) {
+		if ( ! empty( $v['ficha'] ) && (int) $v['ficha'] === (int) $ficha && ! $v['usado'] && time() <= (int) $v['vence'] ) {
+			return $v;
+		}
+	}
+	return null;
+}
+
+// 1.1.10: dueño emprendedor de una ficha (WP_User) o null si la ficha es del administrador.
+function clp_inv_dueno( $ficha ) {
+	$u = get_userdata( (int) get_post_field( 'post_author', $ficha ) );
+	return ( $u && array_intersect( array( 'cl_emprendedor', 'cl_emprendedor_pendiente' ), (array) $u->roles ) ) ? $u : null;
+}
+
+// Mensaje de WhatsApp de una invitación.
+function clp_inv_mensaje( $v ) {
+	$f = ! empty( $v['ficha'] ) ? (int) $v['ficha'] : 0;
+	return $f
+		? 'Hola! Ya cargamos la ficha de ' . get_the_title( $f ) . ' en Caminos Locales. Con este enlace creás tu cuenta y la podés revisar y cambiar cuando quieras (sirve una sola vez): ' . $v['enlace']
+		: 'Hola! Te invito a sumar tu emprendimiento a Caminos Locales. Con este enlace creás tu cuenta y cargás tu ficha (sirve una sola vez): ' . $v['enlace'];
+}
+
+// 1.1.10: desde Mi panel (carga asistida): nueva ficha a nombre del administrador e invitación para su dueño.
+add_action( 'admin_post_clp_panel_admin', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'clp_panel_admin' ) ) {
+		wp_die( 'Sin permiso.' );
+	}
+	$panel  = defined( 'CL_PANEL_PAGE_ID' ) ? get_permalink( CL_PANEL_PAGE_ID ) : home_url( '/panel/' );
+	$accion = sanitize_key( $_POST['clp_accion'] ?? '' );
+	if ( 'nueva' === $accion ) {
+		$nombre = trim( sanitize_text_field( wp_unslash( $_POST['clp_nombre'] ?? '' ) ) );
+		if ( '' === $nombre ) {
+			wp_safe_redirect( $panel );
+			exit;
+		}
+		$id = wp_insert_post( array(
+			'post_type'   => 'emprendimientos',
+			'post_title'  => mb_substr( $nombre, 0, 100 ),
+			'post_status' => 'draft',
+			'post_author' => get_current_user_id(),
+		) );
+		wp_safe_redirect( is_wp_error( $id ) || ! $id ? $panel : add_query_arg( 'emp', (int) $id, $panel ) );
+		exit;
+	}
+	if ( 'invitar' === $accion ) {
+		$id = (int) ( $_POST['emp'] ?? 0 );
+		if ( 'emprendimientos' === get_post_type( $id ) && ! clp_inv_dueno( $id ) && ! clp_inv_de_ficha( $id ) ) {
+			clp_inv_crear( get_the_title( $id ), $id );
+		}
+		wp_safe_redirect( add_query_arg( 'emp', $id, $panel ) . '#clp-admin' );
+		exit;
+	}
+	wp_safe_redirect( $panel );
+	exit;
+} );
+
+// 1.1.10: bloque de Mi panel para el administrador: el procedimiento, nueva ficha e «Invitar al dueño».
+function clp_panel_admin_extra( $id ) {
+	$post = admin_url( 'admin-post.php' );
+	$nonce = wp_nonce_field( 'clp_panel_admin', '_wpnonce', true, false );
+	$btn  = 'min-height:44px;border-radius:10px;border:0;background:#1f4645;color:#fff;font-weight:700;font-size:15px;padding:0 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none';
+	$h    = '';
+
+	// Nueva ficha.
+	$h .= '<form method="post" action="' . esc_url( $post ) . '" style="display:flex;gap:8px;flex-wrap:wrap">';
+	$h .= '<input type="hidden" name="action" value="clp_panel_admin"><input type="hidden" name="clp_accion" value="nueva">' . $nonce;
+	$h .= '<input type="text" name="clp_nombre" required maxlength="100" placeholder="Nombre del emprendimiento nuevo" style="flex:1 1 220px;height:44px;border:1px solid #c9a76a;border-radius:10px;padding:0 12px;font-size:16px;background:#fff">';
+	$h .= '<button style="' . $btn . '">+ Nueva ficha</button></form>';
+
+	// Invitar al dueño de la ficha elegida.
+	if ( $id ) {
+		$dueno = clp_inv_dueno( $id );
+		$h    .= '<div style="border-top:1px solid #e9d3a4;padding-top:10px;display:flex;flex-direction:column;gap:6px">';
+		if ( $dueno ) {
+			$h .= '<div style="font-size:15px;color:#3d4b49"><strong>Dueño:</strong> ' . esc_html( $dueno->display_name ) . ' (' . esc_html( $dueno->user_email ) . '). Ya tiene su cuenta: no hace falta invitarlo.</div>';
+		} else {
+			$v  = clp_inv_de_ficha( $id );
+			$h .= '<div style="font-size:15px;font-weight:700;color:#6b4300">Invitar al dueño</div>';
+			if ( $v ) {
+				$h .= '<div style="font-size:14px;color:#3d4b49">Enlace listo, vigente hasta el ' . esc_html( wp_date( 'd/m', $v['vence'] ) ) . '. Mandalo por WhatsApp: al usarlo, el dueño crea su cuenta con su email y la ficha pasa a ser suya.</div>';
+				$h .= '<input type="text" readonly value="' . esc_attr( $v['enlace'] ) . '" onclick="this.select()" style="height:40px;border:1px solid #c9a76a;border-radius:10px;padding:0 10px;font-size:13px;background:#fff">';
+				$h .= '<a href="' . esc_url( 'https://wa.me/?text=' . rawurlencode( clp_inv_mensaje( $v ) ) ) . '" target="_blank" rel="noopener" style="' . $btn . ';background:#25803c;align-self:flex-start">Mandar por WhatsApp</a>';
+			} else {
+				$h .= '<div style="font-size:14px;color:#3d4b49">Cuando la ficha esté lista, creá el enlace y mandáselo. No hace falta su email: lo pone él al crear su cuenta.</div>';
+				$h .= '<form method="post" action="' . esc_url( $post ) . '"><input type="hidden" name="action" value="clp_panel_admin"><input type="hidden" name="clp_accion" value="invitar"><input type="hidden" name="emp" value="' . (int) $id . '">' . $nonce;
+				$h .= '<button style="' . $btn . '">Crear enlace de invitación</button></form>';
+			}
+		}
+		$h .= '</div>';
+	}
+
+	// El procedimiento.
+	$h .= '<details style="font-size:14px;color:#3d4b49"><summary style="cursor:pointer;font-weight:700;color:#6b4300;min-height:36px;display:flex;align-items:center">Cómo cargar una ficha por alguien</summary><ol style="margin:4px 0 6px 18px;padding:0;line-height:1.5">';
+	$h .= '<li><strong>+ Nueva ficha</strong> con el nombre del emprendimiento (queda en borrador, a tu nombre).</li>';
+	$h .= '<li>Completala con los pasos del panel, como lo haría el emprendedor. Si querés, publicala.</li>';
+	$h .= '<li><strong>Crear enlace de invitación</strong> y <strong>Mandar por WhatsApp</strong>.</li>';
+	$h .= '<li>El dueño abre el enlace, pone su nombre, email y contraseña, y la ficha pasa a ser suya, con sus alojamientos y experiencias. Te llega un correo.</li>';
+	$h .= '</ol>No uses cuentas con tu email o alias: la ficha tiene que quedar a tu nombre hasta que el dueño la reclame.</details>';
+	return $h;
+}
+
 add_action( 'admin_post_clp_invitacion', function () {
 	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'clp_invitacion' ) ) {
 		wp_die( 'Sin permiso.' );
@@ -241,17 +362,9 @@ add_action( 'admin_post_clp_invitacion', function () {
 	$todas  = clp_inv_todas();
 	$accion = sanitize_key( $_POST['clp_accion'] ?? '' );
 	if ( 'crear' === $accion ) {
-		$nota  = trim( sanitize_text_field( wp_unslash( $_POST['clp_nota'] ?? '' ) ) );
-		$token = wp_generate_password( 32, false, false );
-		$todas[ hash( 'sha256', $token ) ] = array(
-			'nota'   => '' === $nota ? 'Sin nombre' : mb_substr( $nota, 0, 80 ),
-			'creado' => time(),
-			'vence'  => time() + CLP_INV_DIAS * DAY_IN_SECONDS,
-			'usado'  => 0,
-			'ficha'  => ( isset( $_POST['clp_ficha'] ) && 'emprendimientos' === get_post_type( (int) $_POST['clp_ficha'] ) ) ? (int) $_POST['clp_ficha'] : 0, // 1.1.9
-			// El enlace completo se guarda solo para poder volver a copiarlo desde esta pantalla (solo administradores).
-			'enlace' => add_query_arg( 'inv', $token, home_url( '/invitacion/' ) ),
-		);
+		$nota = trim( sanitize_text_field( wp_unslash( $_POST['clp_nota'] ?? '' ) ) );
+		clp_inv_crear( $nota, isset( $_POST['clp_ficha'] ) ? (int) $_POST['clp_ficha'] : 0 );
+		$todas = clp_inv_todas();
 	} elseif ( 'anular' === $accion ) {
 		unset( $todas[ sanitize_text_field( wp_unslash( $_POST['clp_clave'] ?? '' ) ) ] );
 	}
@@ -320,9 +433,7 @@ function clp_invitaciones_caja() {
 						$estado = 'Vigente hasta el ' . wp_date( 'd/m', $v['vence'] );
 					}
 					$ficha_v = ! empty( $v['ficha'] ) ? (int) $v['ficha'] : 0;
-					$msg     = $ficha_v
-						? 'Hola! Ya cargamos la ficha de ' . get_the_title( $ficha_v ) . ' en Caminos Locales. Con este enlace creás tu cuenta y la podés revisar y cambiar cuando quieras (sirve una sola vez): ' . $v['enlace']
-						: 'Hola! Te invito a sumar tu emprendimiento a Caminos Locales. Con este enlace creás tu cuenta y cargás tu ficha (sirve una sola vez): ' . $v['enlace'];
+					$msg     = clp_inv_mensaje( $v );
 					?>
 					<tr>
 						<td><?php echo esc_html( $v['nota'] ); ?><?php echo $ficha_v ? '<br><small>Ficha: ' . esc_html( get_the_title( $ficha_v ) ) . '</small>' : ''; ?></td>
