@@ -446,6 +446,12 @@ function cl_panel_escribir( $campo, $valor, $id ) {
 			$todos = is_wp_error( $todos ) ? array() : array_map( 'intval', $todos );
 			$valor = array_merge( array_diff( $todos, $r['solo'] ), $valor );
 		}
+		// 1.1.3: los rubros curados no se eligen desde el panel ni se pierden al guardar «¿Qué ofrecés?».
+		if ( 'rubro' === $r['tax'] && function_exists( 'cl_srv_rubros_curados_ids' ) && ( $cur = cl_srv_rubros_curados_ids() ) ) {
+			$ya    = wp_get_object_terms( $id, 'rubro', array( 'fields' => 'ids' ) );
+			$ya    = is_wp_error( $ya ) ? array() : array_map( 'intval', $ya );
+			$valor = array_merge( array_diff( array_map( 'intval', (array) $valor ), $cur ), array_intersect( $ya, $cur ) );
+		}
 		wp_set_object_terms( $id, array_values( array_unique( $valor ) ), $r['tax'], false );
 		return;
 	}
