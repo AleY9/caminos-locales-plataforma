@@ -492,17 +492,19 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	cl_aloj_sincronizar( $aloj, $emp );
 
 	if ( ! $es_admin && $cambios && 'publish' === get_post_status( $aloj ) ) {
-		$user = wp_get_current_user();
-		wp_mail(
-			get_option( 'admin_email' ),
-			'[Caminos Locales] Cambios en ' . get_the_title( $aloj ),
-			'Alojamiento: ' . get_the_title( $aloj ) . "\n" .
+		$user   = wp_get_current_user();
+		$asunto = '[Caminos Locales] Cambios en ' . get_the_title( $aloj );
+		$cuerpo = 'Alojamiento: ' . get_the_title( $aloj ) . "\n" .
 			'Emprendimiento: ' . get_the_title( $emp ) . "\n" .
 			'Usuario: ' . $user->user_login . "\n\n" .
 			'Cambios publicados: ' . implode( ', ', $cambios ) . "\n\n" .
 			'Ver: ' . get_permalink( $aloj ) . "\n" .
-			'Editar: ' . admin_url( 'post.php?post=' . $aloj . '&action=edit' )
-		);
+			'Editar: ' . admin_url( 'post.php?post=' . $aloj . '&action=edit' );
+		if ( function_exists( 'clp_aviso_cambios' ) ) {
+			clp_aviso_cambios( $aloj, 'alojamiento', $cambios, $asunto, $cuerpo ); // 1.1.12: al resumen
+		} else {
+			wp_mail( get_option( 'admin_email' ), $asunto, $cuerpo );
+		}
 	}
 	$form->set_result( array( 'action' => 'cl_aloj', 'type' => 'success', 'message' => 'Guardado ✓' ) );
 } );
@@ -700,13 +702,16 @@ function cl_aloj_aviso_admin( $id, $que ) {
 	if ( current_user_can( 'manage_options' ) ) {
 		return;
 	}
-	$user = wp_get_current_user();
-	$emp  = cl_aloj_emp_de( $id );
-	wp_mail(
-		get_option( 'admin_email' ),
-		'[Caminos Locales] ' . $que . ': ' . get_the_title( $id ),
-		'Alojamiento: ' . get_the_title( $id ) . "\nEmprendimiento: " . get_the_title( $emp ) . "\nUsuario: " . $user->user_login . "\n\n" . $que . ".\n\nVer: " . cl_aloj_url_vista( $id ) . "\nEditar: " . admin_url( 'post.php?post=' . $id . '&action=edit' )
-	);
+	$user   = wp_get_current_user();
+	$emp    = cl_aloj_emp_de( $id );
+	$asunto = '[Caminos Locales] ' . $que . ': ' . get_the_title( $id );
+	$cuerpo = 'Alojamiento: ' . get_the_title( $id ) . "\nEmprendimiento: " . get_the_title( $emp ) . "\nUsuario: " . $user->user_login . "\n\n" . $que . ".\n\nVer: " . cl_aloj_url_vista( $id ) . "\nEditar: " . admin_url( 'post.php?post=' . $id . '&action=edit' );
+	// 1.1.12: ocultar y borrar al momento; volver a publicar y duplicar, al resumen.
+	if ( function_exists( 'clp_aviso_cambios' ) && preg_match( '/duplicad|de nuevo/i', $que ) ) {
+		clp_aviso_cambios( $id, 'alojamiento', array( mb_strtolower( preg_replace( '/^Alojamiento |\s*por el emprendedor.*$/u', '', $que ) ) ), $asunto, $cuerpo );
+		return;
+	}
+	wp_mail( get_option( 'admin_email' ), $asunto, $cuerpo );
 }
 
 // Ocultar, volver a publicar y duplicar (desde la lista o desde «Ver cómo queda»).
