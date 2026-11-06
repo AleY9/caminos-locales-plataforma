@@ -401,6 +401,7 @@ function cl_ev_pasos() {
 			'clevde' => 'contenido',
 			'clevdo' => 'donde_ocurre',
 			'clevca' => 'categorias',
+			'clevep' => 'especial',
 		),
 	);
 }
@@ -462,6 +463,8 @@ function cl_ev_valor( $campo ) {
 			$ids = wp_get_object_terms( $id, 'category', array( 'fields' => 'ids' ) );
 			$ids = is_wp_error( $ids ) ? array() : array_intersect( array_map( 'intval', $ids ), cl_ev_formas() );
 			return implode( ',', $ids );
+		case 'especial':
+			return function_exists( 'cl_especial_leer' ) ? implode( ',', cl_especial_leer( $id ) ) : '';
 		case 'breve_descripcion':
 		case 'precio_de_la_actividad':
 			return (string) get_post_meta( $id, $campo, true );
@@ -600,6 +603,11 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 		$actuales = is_wp_error( $actuales ) ? array() : array_map( 'intval', $actuales );
 		$otras    = array_values( array_diff( $actuales, cl_ev_formas(), array( 1 ) ) );
 		wp_set_object_terms( $ev, array_values( array_unique( array_merge( $otras, $elegidas ) ) ), 'category', false );
+	}
+	// 1.1.11: «Especial para» (opcional). Las casillas sin marcar no llegan: si el formulario tiene el campo
+	// (lo avisa el oculto clevex), sin marcas = se vacía.
+	if ( function_exists( 'cl_especial_guardar' ) && ( array_key_exists( 'form-field-clevep', $f ) || array_key_exists( 'form-field-clevex', $f ) ) ) {
+		cl_especial_guardar( $ev, isset( $f['form-field-clevep'] ) ? $f['form-field-clevep'] : array() );
 	}
 	update_field( $k['fecha_del_evento'], $ini, $ev );
 	update_field( $k['fecha_de_finalizacion'], $fin, $ev );

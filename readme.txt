@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.10 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.11 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,13 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.11
+* «Especial para» (Parejas · Familias · Grupos): etiqueta opcional en alojamientos y experiencias. Se marca en
+  el panel («Qué tiene» del alojamiento y el formulario de la experiencia, campos clespe / clevep con opciones
+  parejas:Parejas…, más un oculto clespx / clevex), filtra en los listados y la ficha la muestra con
+  {echo:cl_especial_texto}. No cuenta en el progreso.
+* La característica «Ideal para parejas» pasa a «Especial para: Parejas» (una vez) y deja de ofrecerse en «Qué tiene».
+
 1.1.10
 * Mi panel, bloque de carga asistida (solo administradores, [cl_panel_admin_emp]): «+ Nueva ficha» crea un
   emprendimiento en borrador a nombre del administrador y abre el panel para completarlo; «Invitar al dueño»

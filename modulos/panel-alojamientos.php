@@ -121,7 +121,8 @@ function cl_aloj_campos() {
 		'capacidad'                               => array( 'tipo' => 'numero', 'max' => 200, 'error' => 'Capacidad: escribí solo el número de personas.' ),
 		'capacidad_nota'                          => array( 'tipo' => 'texto', 'max' => 100 ),
 		'superficie'                              => array( 'tipo' => 'numero', 'max' => 100000, 'error' => 'Superficie: escribí solo el número de metros cuadrados.' ),
-		'caracteristicas'                         => array( 'tipo' => 'tax', 'tax' => 'caracteristicas', 'sin' => array( 147, 148 ), 'vacio' => true ),
+		'caracteristicas'                         => array( 'tipo' => 'tax', 'tax' => 'caracteristicas', 'sin' => array_merge( array( 147, 148 ), function_exists( 'cl_especial_caract_vieja_ids' ) ? cl_especial_caract_vieja_ids() : array() ), 'vacio' => true ),
+		'especial'                                => array( 'tipo' => 'especial', 'vacio' => true ), // 1.1.11: «Especial para» (por slug)
 		'tipo_de_bano'                            => array( 'tipo' => 'opcion', 'opciones' => array( 'Con descarga de agua', 'Seco (compostable)' ) ), // «Inodoro»
 		'alimentacion'                            => array( 'tipo' => 'opciones', 'opciones' => array_keys( cl_aloj_alimentacion() ), 'vacio' => true ),
 		'servicios_disponibles_y_caracteristicas' => array( 'tipo' => 'textarea', 'max' => 2000 ),
@@ -138,7 +139,7 @@ function cl_aloj_campos() {
 function cl_aloj_pasos() {
 	return array(
 		'aloj_basico'   => array( 'clnoma' => 'titulo', 'cltipo' => 'tipo', 'clcapa' => 'capacidad', 'clcapn' => 'capacidad_nota', 'clsupe' => 'superficie', 'cldesa' => 'contenido' ),
-		'aloj_como'     => array( 'clcara' => 'caracteristicas', 'cltban' => 'tipo_de_bano', 'clalim' => 'alimentacion', 'clserv' => 'servicios_disponibles_y_caracteristicas' ),
+		'aloj_como'     => array( 'clcara' => 'caracteristicas', 'clespe' => 'especial', 'cltban' => 'tipo_de_bano', 'clalim' => 'alimentacion', 'clserv' => 'servicios_disponibles_y_caracteristicas' ),
 		'aloj_reservas' => array( 'clprec' => 'precio', 'clrese' => 'reservas', 'clures' => 'url_reserva', 'clcond' => 'condiciones_del_alojamiento', 'clrecm' => 'recomendaciones', 'clmost' => 'email_del_emprendimiento' ),
 	);
 }
@@ -153,6 +154,9 @@ function cl_aloj_leer( $campo, $id ) {
 	}
 	$campos = cl_aloj_campos();
 	$r      = $campos[ $campo ];
+	if ( 'especial' === $r['tipo'] ) {
+		return function_exists( 'cl_especial_leer' ) ? cl_especial_leer( $id ) : array();
+	}
 	if ( 'tax' === $r['tipo'] ) {
 		$ids = wp_get_object_terms( $id, $r['tax'], array( 'fields' => 'ids' ) );
 		$ids = is_wp_error( $ids ) ? array() : array_map( 'intval', $ids );
@@ -261,6 +265,8 @@ function cl_aloj_limpiar( $campo, $valor, $aloj = 0 ) {
 	}
 	$r = $campos[ $campo ];
 	switch ( $r['tipo'] ) {
+		case 'especial':
+			return array( function_exists( 'cl_especial_limpiar' ) ? cl_especial_limpiar( $valor ) : null, '' );
 		case 'tax':
 			$validos = get_terms( array( 'taxonomy' => $r['tax'], 'hide_empty' => false, 'fields' => 'ids' ) );
 			$validos = is_wp_error( $validos ) ? array() : array_map( 'intval', $validos );
@@ -319,6 +325,10 @@ function cl_aloj_limpiar( $campo, $valor, $aloj = 0 ) {
 function cl_aloj_escribir( $campo, $valor, $id ) {
 	$campos = cl_aloj_campos();
 	$r      = $campos[ $campo ];
+	if ( 'especial' === $r['tipo'] ) {
+		cl_especial_guardar( $id, $valor );
+		return;
+	}
 	if ( 'tax' === $r['tipo'] ) {
 		wp_set_object_terms( $id, $valor, $r['tax'], false );
 		if ( 'caracteristicas' === $campo ) {
@@ -451,6 +461,10 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 		if ( ! array_key_exists( $k, $f ) ) {
 			// Casillas sin ninguna marcada: el navegador no las manda → quedan vacías.
 			if ( empty( $campos[ $campo ]['vacio'] ) ) {
+				continue;
+			}
+			// «Especial para» solo se vacía si el formulario tiene la pregunta (oculto clespx).
+			if ( 'especial' === $campo && ! array_key_exists( 'form-field-clespx', $f ) ) {
 				continue;
 			}
 			$f[ $k ] = array();

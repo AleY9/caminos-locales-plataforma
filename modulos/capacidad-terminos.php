@@ -34,7 +34,7 @@ if ( ! function_exists( 'cl_terms_cpt_permitidos' ) ) {
 
 if ( ! function_exists( 'cl_terms_tax_permitidas' ) ) {
 	function cl_terms_tax_permitidas() {
-		return array( 'region', 'tipo_alojamiento', 'caracteristicas', 'equipamiento', 'category' );
+		return array( 'region', 'tipo_alojamiento', 'caracteristicas', 'equipamiento', 'category', 'especial' );
 	}
 }
 
@@ -173,7 +173,7 @@ function cl_terms_registrar_capacidad() {
 	wp_register_ability( 'caminoslocales/update-terms', array(
 		'label'       => 'Actualizar términos de una ficha',
 		'category'    => 'caminoslocales',
-		'description' => 'Pone, agrega o quita términos de taxonomía en una ficha de emprendimientos, alojamiento o evento. terms: objeto { taxonomia: [IDs de términos] }. mode: "replace" reemplaza la lista (por defecto), "add" suma, "remove" quita. Taxonomías permitidas: region, tipo_alojamiento, caracteristicas (alojamiento), equipamiento (emprendimientos), category. Solo acepta términos que ya existen; nunca crea términos. Si cambian las Características de un alojamiento, recalcula el campo ACF "Baño privado". Si cambia la región o las categorías de un emprendimiento, resincroniza sus alojamientos. Devuelve los términos resultantes por taxonomía, cuáles quedaron sin cambios y los errores.',
+		'description' => 'Pone, agrega o quita términos de taxonomía en una ficha de emprendimientos, alojamiento o evento. terms: objeto { taxonomia: [IDs de términos] }. mode: "replace" reemplaza la lista (por defecto), "add" suma, "remove" quita. Taxonomías permitidas: region, tipo_alojamiento, caracteristicas (alojamiento), equipamiento (emprendimientos), category, especial (alojamiento y evento). Solo acepta términos que ya existen; nunca crea términos. Si cambian las Características de un alojamiento, recalcula el campo ACF "Baño privado". Si cambia la región o las categorías de un emprendimiento, resincroniza sus alojamientos. Devuelve los términos resultantes por taxonomía, cuáles quedaron sin cambios y los errores.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'properties' => array(
