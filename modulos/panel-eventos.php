@@ -630,12 +630,14 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	cl_ev_meta( $ev );
 
 	if ( ! current_user_can( 'manage_options' ) && 'publish' === get_post_status( $ev ) ) {
-		$user = wp_get_current_user();
-		wp_mail(
-			get_option( 'admin_email' ),
-			'[Caminos Locales] Cambios en la experiencia ' . get_the_title( $ev ),
-			'Experiencia: ' . get_the_title( $ev ) . "\nEmprendimiento: " . get_the_title( $emp ) . "\nUsuario: " . $user->user_login . "\n\nVer: " . get_permalink( $ev ) . "\nEditar: " . admin_url( 'post.php?post=' . $ev . '&action=edit' )
-		);
+		$user   = wp_get_current_user();
+		$asunto = '[Caminos Locales] Cambios en la experiencia ' . get_the_title( $ev );
+		$cuerpo = 'Experiencia: ' . get_the_title( $ev ) . "\nEmprendimiento: " . get_the_title( $emp ) . "\nUsuario: " . $user->user_login . "\n\nVer: " . get_permalink( $ev ) . "\nEditar: " . admin_url( 'post.php?post=' . $ev . '&action=edit' );
+		if ( function_exists( 'clp_aviso_cambios' ) ) {
+			clp_aviso_cambios( $ev, 'evento', array( 'datos de la experiencia' ), $asunto, $cuerpo ); // 1.1.12: al resumen
+		} else {
+			wp_mail( get_option( 'admin_email' ), $asunto, $cuerpo );
+		}
 	}
 	$form->set_result( array( 'action' => 'cl_ev', 'type' => 'success', 'message' => 'Guardado ✓' ) );
 } );
@@ -903,13 +905,16 @@ function cl_ev_aviso_admin( $id, $que ) {
 	if ( current_user_can( 'manage_options' ) ) {
 		return;
 	}
-	$user = wp_get_current_user();
-	$emp  = cl_ev_emp_de( $id );
-	wp_mail(
-		get_option( 'admin_email' ),
-		'[Caminos Locales] ' . $que . ': ' . get_the_title( $id ),
-		'Experiencia: ' . get_the_title( $id ) . "\nEmprendimiento: " . get_the_title( $emp ) . "\nUsuario: " . $user->user_login . "\n\n" . $que . ".\n\nVer: " . cl_ev_url_vista( $id ) . "\nEditar: " . admin_url( 'post.php?post=' . $id . '&action=edit' )
-	);
+	$user   = wp_get_current_user();
+	$emp    = cl_ev_emp_de( $id );
+	$asunto = '[Caminos Locales] ' . $que . ': ' . get_the_title( $id );
+	$cuerpo = 'Experiencia: ' . get_the_title( $id ) . "\nEmprendimiento: " . get_the_title( $emp ) . "\nUsuario: " . $user->user_login . "\n\n" . $que . ".\n\nVer: " . cl_ev_url_vista( $id ) . "\nEditar: " . admin_url( 'post.php?post=' . $id . '&action=edit' );
+	// 1.1.12: ocultar y borrar al momento; volver a publicar y duplicar, al resumen.
+	if ( function_exists( 'clp_aviso_cambios' ) && preg_match( '/duplicad|de nuevo/i', $que ) ) {
+		clp_aviso_cambios( $id, 'evento', array( mb_strtolower( preg_replace( '/^Experiencia |\s*por el emprendedor.*$/u', '', $que ) ) ), $asunto, $cuerpo );
+		return;
+	}
+	wp_mail( get_option( 'admin_email' ), $asunto, $cuerpo );
 }
 
 add_action( 'template_redirect', function () {

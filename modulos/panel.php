@@ -960,7 +960,13 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 			$txt .= 'Esperan tu aprobación: ' . implode( ', ', $en_espera ) . "\n";
 		}
 		$txt .= "\nEditar: " . admin_url( 'post.php?post=' . $emp_id . '&action=edit' );
-		wp_mail( get_option( 'admin_email' ), '[Caminos Locales] Cambios en ' . get_the_title( $emp_id ), $txt );
+		$asunto = '[Caminos Locales] Cambios en ' . get_the_title( $emp_id );
+		// 1.1.12: nombre, email o algo en espera → al momento; el resto va al resumen.
+		if ( $en_espera || array_intersect( $cambios, array_keys( cl_panel_campos_sensibles() ) ) || ! function_exists( 'clp_aviso_cambios' ) ) {
+			wp_mail( get_option( 'admin_email' ), $asunto, $txt );
+		} else {
+			clp_aviso_cambios( $emp_id, 'emprendimientos', $cambios, $asunto, $txt );
+		}
 	}
 
 	$msg = 'Guardado ✓';
