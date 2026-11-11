@@ -485,7 +485,7 @@ add_action( 'wp_footer', function () {
 	function ver(id, on){ var x = g(id); if (x) { x.style.display = on ? '' : 'none'; } }
 	// Ubicación: zona para todo el que aparece en Servicios.
 	['clhsrv','clsalc','clsnot'].forEach(function(id){ ver(id, EN); });
-	var alc = document.querySelectorAll('form.brxe-form [name="form-field-clsalc"]');
+	var alc = document.querySelectorAll('form.brxe-form [name^="form-field-clsalc"]');
 	function km(){ var v = ''; [].forEach.call(alc, function(r){ if (r.checked) { v = r.value; } }); ver('clskm', EN && v === 'Hasta cierta distancia'); }
 	[].forEach.call(alc, function(r){ r.addEventListener('change', km); });
 	km();
@@ -550,13 +550,13 @@ add_action( 'wp_footer', function () {
 				nota.style.display = (sel.length && !on) ? '' : 'none';
 			}
 			// Temas: no se muestran en la ficha compacta.
-			var fc = document.querySelector('form.brxe-form [name="form-field-clfcom"]:checked');
+			var fc = document.querySelector('form.brxe-form [name^="form-field-clfcom"]:checked');
 			var comp = on && (!fc || fc.value === 'No');
 			var tg = g('cltags'); var dt = tg && tg.closest('details');
 			if (dt) { dt.style.display = comp ? 'none' : ''; }
 		};
 		[].forEach.call(cajas, function(c){ c.addEventListener('change', f); });
-		[].forEach.call(document.querySelectorAll('form.brxe-form [name="form-field-clfcom"]'), function(r){ r.addEventListener('change', f); });
+		[].forEach.call(document.querySelectorAll('form.brxe-form [name^="form-field-clfcom"]'), function(r){ r.addEventListener('change', f); });
 		f();
 	}
 })();
