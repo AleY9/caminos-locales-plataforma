@@ -414,6 +414,9 @@ function cl_emprendimiento_nombre( $post_id = 0 ) {
 // {echo:cl_emprendimiento_url} → enlace a la ficha del emprendimiento vinculado.
 function cl_emprendimiento_url( $post_id = 0 ) {
 	$id = cl_emprendimiento_id( $post_id );
+	if ( $id && function_exists( 'cl_emp_sin_pagina' ) && cl_emp_sin_pagina( $id ) ) {
+		return ''; // 1.1.13: sin página propia.
+	}
 	return $id ? (string) get_permalink( $id ) : '';
 }
 
