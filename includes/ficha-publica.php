@@ -177,27 +177,4 @@ function cl_emprendimiento_enlace( $post_id = 0 ) {
 	return cl_emp_sin_pagina( $id ) ? $nombre : '<a href="' . esc_url( get_permalink( $id ) ) . '">' . $nombre . '</a>';
 }
 
-// ---------- Panel: la pregunta solo con Alojamiento y sin Actividades ----------
-
-add_action( 'wp_footer', function () {
-	if ( ! function_exists( 'cl_panel_puede_usar' ) || ! cl_panel_puede_usar() || ! function_exists( 'cl_panel_rubro_id' ) ) {
-		return;
-	}
-	?>
-<script>
-(function(){
-	var cajas = document.querySelectorAll('form.brxe-form input[name="form-field-clrubr[]"]');
-	var r = document.querySelector('form.brxe-form [name="form-field-clfpub"]');
-	if (!cajas.length || !r) { return; }
-	var ALO = '<?php echo (int) cl_panel_rubro_id( 'alojamiento' ); ?>', ACT = '<?php echo (int) cl_panel_rubro_id( 'actividades-y-experiencias' ); ?>';
-	var g = r.closest('.form-group');
-	function f(){
-		var sel = [].filter.call(cajas, function(c){ return c.checked; }).map(function(c){ return c.value; });
-		if (g) { g.style.display = (sel.indexOf(ALO) > -1 && sel.indexOf(ACT) === -1) ? '' : 'none'; }
-	}
-	[].forEach.call(cajas, function(c){ c.addEventListener('change', f); });
-	f();
-})();
-</script>
-	<?php
-}, 31 );
+// Panel: la pregunta clfpub se muestra u oculta con CSS en la página «Mi emprendimiento» (28262), en Bricks.

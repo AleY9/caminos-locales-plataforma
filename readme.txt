@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.13 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.14 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,14 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.14
+* Ayudas del panel (includes/panel-ayuda.php): el «?» con que empiezan los desplegables de ayuda pasa a un
+  ícono en círculo (span .cl-ayuda; el estilo está en el CSS de las páginas del panel, en Bricks). La guía rápida
+  de «¿Qué ofrecés?» (clhgui) se ve abierta si todavía no hay nada marcado.
+* Arreglo: los botones de opción de Bricks se llaman form-field-ID[]; los selectores de clsalc («¿Hasta dónde
+  llegás?» → kilómetros) y clfcom (ficha compacta → ocultar Temas) ahora los encuentran.
+* Se quita el script de 1.1.13 que mostraba u ocultaba clfpub (no funcionaba; lo hace el CSS de la página 28262).
+
 1.1.13
 * Emprendimiento sin página propia (includes/ficha-publica.php): para quien solo ofrece alojamiento y no quiere
   mostrar más que sus cabañas. Se elige en «¿Qué ofrecés?» (campo clfpub → ficha_publica, Sí / No; la pregunta
