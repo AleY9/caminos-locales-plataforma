@@ -343,7 +343,7 @@ function cl_ev_dato( $clave, $post_id = 0 ) {
 		case 'nombre':
 			return esc_html( get_the_title( $emp ) );
 		case 'url':
-			return 'publish' === get_post_status( $emp ) ? esc_url( get_permalink( $emp ) ) : '';
+			return ( 'publish' === get_post_status( $emp ) && ! ( function_exists( 'cl_emp_sin_pagina' ) && cl_emp_sin_pagina( $emp ) ) ) ? esc_url( get_permalink( $emp ) ) : '';
 		case 'localidad':
 		case 'direccion':
 		case 'como_llegar':

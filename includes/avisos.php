@@ -79,6 +79,7 @@ function clp_aviso_campo( $c ) {
 		'instagramemp'                            => 'Instagram',
 		'facebookemp'                             => 'Facebook',
 		'servicio_publico'                        => 'quién lo ve',
+		'ficha_publica'                           => 'página propia',
 		'telefono_publico'                        => 'teléfono público',
 		'que_visitar_actividades_zona'            => 'qué visitar en la zona',
 		'recomendaciones_aclaraciones'            => 'recomendaciones',

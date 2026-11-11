@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.12 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.13 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,15 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.13
+* Emprendimiento sin página propia (includes/ficha-publica.php): para quien solo ofrece alojamiento y no quiere
+  mostrar más que sus cabañas. Se elige en «¿Qué ofrecés?» (campo clfpub → ficha_publica, Sí / No; la pregunta
+  se ve solo con Alojamiento y sin Actividades). Con «No»: la dirección del emprendimiento lleva a su primer
+  alojamiento (302; si no tiene, 404; la red la sigue viendo), sale de los listados de Emprendimientos e Inicio
+  (meta _cl_sin_pagina), no se indexa, {echo:cl_emprendimiento_url} queda vacío y el progreso del panel pide
+  solo nombre, localidad, mapa y contacto. Nuevo {echo:cl_emprendimiento_enlace}: el nombre del emprendimiento,
+  con enlace solo si tiene página (para la ficha del alojamiento).
+
 1.1.12
 * Avisos de cambios: lo importante sigue llegando al momento (fichas nuevas publicadas, ocultar y borrar, altas
   por invitación, cambios de nombre o email del emprendimiento). Los cambios en fichas ya publicadas, volver a

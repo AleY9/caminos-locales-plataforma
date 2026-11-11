@@ -386,6 +386,9 @@ function cl_panel_valor( $campo ) {
 			if ( 'servicio_publico' === $campo && '' === $v ) {
 				return 'Sí'; // Servicios: arrancan visibles al público.
 			}
+			if ( 'ficha_publica' === $campo && '' === $v ) {
+				return 'Sí'; // 1.1.13: con página propia, salvo que elija lo contrario.
+			}
 			if ( 'porteras' === $campo && '' === $v ) {
 				return 'Sí'; // Casi todos piden cerrar las porteras: arranca marcado.
 			}
@@ -535,6 +538,7 @@ function cl_panel_campos_permitidos() {
 		'breve_descripcion_alojamiento' => array( 'tipo' => 'textarea', 'max' => 600 ),
 		'publica_eventos'               => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
 		'ficha_completa'                => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ), // 1.1.0, solo sin Alojamiento ni Actividades
+		'ficha_publica'                 => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ), // 1.1.13, solo con Alojamiento y sin Actividades
 		// Paso Ubicación
 		'region'                        => array( 'tipo' => 'tax', 'tax' => 'region', 'unico' => true, 'min' => 1, 'error' => 'Elegí la región.' ),
 		'localidad'                     => array( 'tipo' => 'texto', 'max' => 200, 'obligatorio' => 'Escribí la localidad.' ),
@@ -596,6 +600,7 @@ function cl_panel_pasos() {
 			'clbral' => 'breve_descripcion_alojamiento',
 			'clpuev' => 'publica_eventos',
 			'clfcom' => 'ficha_completa',
+			'clfpub' => 'ficha_publica', // 1.1.13
 		),
 		'ubicacion'    => array(
 			'clregi' => 'region',
@@ -1077,6 +1082,10 @@ function cl_panel_progreso( $id ) {
 		unset( $chk['quiénes somos'] );
 		$chk = array( 'foto o logo' => $chk['foto principal'] ? $chk['foto principal'] : get_post_meta( $id, 'imagen_extra', true ) ) + $chk;
 		unset( $chk['foto principal'] );
+	}
+	// 1.1.13: sin página propia, solo se pide lo que usan sus alojamientos.
+	if ( function_exists( 'cl_emp_sin_pagina' ) && cl_emp_sin_pagina( $id ) ) {
+		$chk = array_intersect_key( $chk, array_flip( array( 'nombre', 'localidad', 'mapa', 'teléfono o email' ) ) );
 	}
 	$faltan = array();
 	foreach ( $chk as $k => $v ) {
