@@ -287,6 +287,25 @@ function cl_srv_tiene_clase( $settings, $clase ) {
 	return in_array( $clase, preg_split( '/\s+/', $c ), true );
 }
 
+// IDs de fichas con una meta en '1' (una consulta liviana por carga de página).
+function cl_listado_ids_con_meta( $clave ) {
+	static $cache = array();
+	if ( ! isset( $cache[ $clave ] ) ) {
+		global $wpdb;
+		$cache[ $clave ] = array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = '1'", $clave ) ) );
+	}
+	return $cache[ $clave ];
+}
+
+// Saca de un listado las fichas que tienen esa meta en '1'.
+function cl_listado_excluir( $qv, $clave ) {
+	$ids = cl_listado_ids_con_meta( $clave );
+	if ( $ids ) {
+		$qv['post__not_in'] = array_values( array_unique( array_merge( array_map( 'intval', (array) ( $qv['post__not_in'] ?? array() ) ), $ids ) ) );
+	}
+	return $qv;
+}
+
 add_filter( 'bricks/posts/query_vars', function ( $qv, $settings, $element_id ) {
 	$servicios   = cl_srv_tiene_clase( $settings, 'cl-loop-servicios' );
 	$prestadores = cl_srv_tiene_clase( $settings, 'cl-loop-prestadores' );
@@ -295,8 +314,8 @@ add_filter( 'bricks/posts/query_vars', function ( $qv, $settings, $element_id ) 
 	if ( ! $servicios && ! $prestadores ) {
 		$tipos = (array) ( $qv['post_type'] ?? array() );
 		if ( in_array( 'emprendimientos', $tipos, true ) && ( in_array( $element_id, array( 'pvnicx', 'gcwygx' ), true ) || cl_srv_tiene_clase( $settings, 'cl-loop-turismo' ) ) ) {
-			$sin = array( 'relation' => 'OR', array( 'key' => '_cl_servicio', 'compare' => 'NOT EXISTS' ), array( 'key' => '_cl_servicio', 'value' => '1', 'compare' => '!=' ) );
-			$qv['meta_query'] = empty( $qv['meta_query'] ) ? array( $sin ) : array( 'relation' => 'AND', $qv['meta_query'], $sin );
+			// Por ID y no por meta_query: cada grupo OR con NOT EXISTS suma un JOIN sin clave y la consulta se cuelga.
+			$qv = cl_listado_excluir( $qv, '_cl_servicio' );
 		}
 		return $qv;
 	}

@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.14 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.1.15 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,13 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.1.15
+* Arreglo urgente: Inicio daba error 500 (la consulta del listado no terminaba). Los filtros que sacan de los
+  listados de turismo las fichas compactas (_cl_servicio) y los emprendimientos sin página (_cl_sin_pagina)
+  sumaban cada uno un grupo «NOT EXISTS o distinto de 1» a la meta_query; con el de experiencias pasadas de
+  Inicio eran tres, y cada uno agrega un JOIN sin clave a la tabla de metas. Ahora se excluyen por ID
+  (post__not_in), con una consulta liviana por carga: cl_listado_ids_con_meta() y cl_listado_excluir()
+  en includes/servicios.php.
 1.1.14
 * Ayudas del panel (includes/panel-ayuda.php): el «?» con que empiezan los desplegables de ayuda pasa a un
   ícono en círculo (span .cl-ayuda; el estilo está en el CSS de las páginas del panel, en Bricks). La guía rápida
