@@ -143,7 +143,7 @@ add_action( 'template_redirect', function () {
 // ---------- Listados: fuera de Emprendimientos (pvnicx) e Inicio (gcwygx) ----------
 
 add_filter( 'bricks/posts/query_vars', function ( $qv, $settings, $element_id ) {
-	if ( ! function_exists( 'cl_srv_tiene_clase' ) ) {
+	if ( ! function_exists( 'cl_srv_tiene_clase' ) || ! function_exists( 'cl_listado_excluir' ) ) {
 		return $qv;
 	}
 	$tipos = (array) ( $qv['post_type'] ?? array() );
@@ -153,9 +153,7 @@ add_filter( 'bricks/posts/query_vars', function ( $qv, $settings, $element_id ) 
 	if ( ! in_array( $element_id, array( 'pvnicx', 'gcwygx' ), true ) && ! cl_srv_tiene_clase( $settings, 'cl-loop-turismo' ) ) {
 		return $qv;
 	}
-	$sin = array( 'relation' => 'OR', array( 'key' => '_cl_sin_pagina', 'compare' => 'NOT EXISTS' ), array( 'key' => '_cl_sin_pagina', 'value' => '1', 'compare' => '!=' ) );
-	$qv['meta_query'] = empty( $qv['meta_query'] ) ? array( $sin ) : array( 'relation' => 'AND', $qv['meta_query'], $sin );
-	return $qv;
+	return cl_listado_excluir( $qv, '_cl_sin_pagina' );
 }, 20, 3 );
 
 // ---------- Nombre con o sin enlace ----------
