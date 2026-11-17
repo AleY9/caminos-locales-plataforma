@@ -369,6 +369,9 @@ function cl_panel_valor( $campo ) {
 			return cl_panel_contenido_a_texto( get_post_field( 'post_content', $id ) );
 		case 'emp_id':
 			return (string) $id;
+		case 'contacto_visible':
+			// 1.2.0: casillas «Se muestra en la web» (clcvis). Por defecto, todas marcadas.
+			return function_exists( 'cl_contacto_ocultos' ) ? implode( ',', array_diff( array_keys( cl_contacto_campos() ), cl_contacto_ocultos( $id ) ) ) : '';
 		case 'idiomas_lista':
 		case 'idiomas_otro':
 			$sep = cl_panel_idiomas_separar( get_field( 'idiomas', $id, false ) );
@@ -940,6 +943,14 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 		$cambios[] = $campo;
 	}
 
+	// 1.2.0: «Se muestra en la web» (casillas clcvis + oculto clcvix, para saber que el formulario las trae
+	// aunque se desmarquen todas).
+	if ( 'contacto' === $paso && ! empty( $f['form-field-clcvix'] ) && function_exists( 'cl_contacto_guardar' ) ) {
+		if ( cl_contacto_guardar( $emp_id, isset( $f['form-field-clcvis'] ) ? (array) $f['form-field-clcvis'] : array() ) ) {
+			$cambios[] = 'contacto_visible';
+		}
+	}
+
 	if ( $post_upd ) {
 		$post_upd['ID'] = $emp_id;
 		wp_update_post( wp_slash( $post_upd ) );
@@ -1314,7 +1325,7 @@ add_action( 'template_redirect', function () {
 	if ( ! $id || ! isset( $_POST['_clnonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['_clnonce'] ), 'cl_enviar_' . $id ) ) {
 		return;
 	}
-	cl_panel_publicar_o_enviar( $id );
+	cl_panel_publicar_o_enviar( $id, ! empty( $_POST['cl_minima'] ) );
 }, 1 );
 
 // 1.1.1: «Publicar» desde Mi panel (enlace con nonce). Si falta algo obligatorio, lleva a «Ver cómo queda».
@@ -1360,7 +1371,7 @@ function cl_panel_url_publicar( $id ) {
 }
 
 // Publica (sin revisión) o envía a revisión, y redirige a «Ver cómo queda» con el resultado.
-function cl_panel_publicar_o_enviar( $id ) {
+function cl_panel_publicar_o_enviar( $id, $minima = false ) {
 	$vuelta = home_url( '/panel/emprendimiento/?paso=vista' . cl_panel_qs( $id ) );
 	$vuelta = current_user_can( 'manage_options' ) ? add_query_arg( 'paso', 'vista', home_url( '/panel/emprendimiento/?emp=' . $id ) ) : $vuelta;
 	$estado_antes = get_post_status( $id );
@@ -1368,21 +1379,21 @@ function cl_panel_publicar_o_enviar( $id ) {
 		wp_safe_redirect( $vuelta );
 		exit;
 	}
-	list( $oblig ) = cl_panel_revision_chequeo( $id );
-	foreach ( $oblig as $o ) {
-		if ( ! $o[1] ) {
-			wp_safe_redirect( add_query_arg( 'faltan', 1, $vuelta ) );
-			exit;
-		}
+	// 1.2.0: con «Publicar perfil en construcción» alcanza con la ficha mínima.
+	$completa = ! function_exists( 'cl_ficha_completa_ok' ) || cl_ficha_completa_ok( $id );
+	if ( ! $completa && ! ( $minima && cl_ficha_minima_ok( $id ) ) ) {
+		wp_safe_redirect( add_query_arg( 'faltan', 1, $vuelta ) );
+		exit;
 	}
+	$en_constr = $completa ? '' : ' (perfil en construcción)';
 	$user = wp_get_current_user();
 	// v1.0.1: sin revisión (integrantes de confianza), se publica al momento y se avisa al admin.
 	if ( cl_sin_revision() ) {
 		wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ) );
 		wp_mail(
 			get_option( 'admin_email' ),
-			'[Caminos Locales] Ficha publicada: ' . get_the_title( $id ),
-			'El emprendimiento «' . get_the_title( $id ) . '» se publicó desde el panel.' . "\n" .
+			'[Caminos Locales] Ficha publicada' . $en_constr . ': ' . get_the_title( $id ),
+			'El emprendimiento «' . get_the_title( $id ) . '» se publicó desde el panel' . $en_constr . '.' . "\n" .
 			'Usuario: ' . $user->user_login . "\n\n" .
 			'Ver: ' . get_permalink( $id ) . "\n" .
 			'Editar: ' . admin_url( 'post.php?post=' . $id . '&action=edit' )
@@ -1393,7 +1404,7 @@ function cl_panel_publicar_o_enviar( $id ) {
 	wp_update_post( array( 'ID' => $id, 'post_status' => 'pending' ) );
 	wp_mail(
 		get_option( 'admin_email' ),
-		'[Caminos Locales] Ficha para revisar: ' . get_the_title( $id ),
+		'[Caminos Locales] Ficha para revisar' . $en_constr . ': ' . get_the_title( $id ),
 		'El emprendimiento «' . get_the_title( $id ) . '» se envió a revisión.' . "\n" .
 		'Usuario: ' . $user->user_login . "\n\n" .
 		'Vista previa: ' . cl_panel_url_vista( $id ) . "\n" .
@@ -1456,6 +1467,11 @@ add_shortcode( 'cl_panel_vista', function () {
 	$pend    = get_post_meta( $id, '_cl_pendiente', true );
 	$pend    = is_array( $pend ) ? $pend : array();
 	$nombres = cl_panel_campos_sensibles();
+	// 1.2.0: ficha mínima («Perfil en construcción»).
+	$minima    = function_exists( 'cl_ficha_minima_chequeo' ) ? cl_ficha_minima_chequeo( $id ) : array();
+	$falta_min = array_filter( $minima, function ( $o ) {
+		return ! $o[1];
+	} );
 
 	ob_start();
 	?>
@@ -1484,6 +1500,8 @@ add_shortcode( 'cl_panel_vista', function () {
 <div class="clv">
 	<?php if ( ! empty( $_GET['oculta'] ) && 'draft' === $estado ) : ?>
 		<div class="clv-msg clv-info"><strong>Listo, tu ficha ya no se ve en la web.</strong><br>Quedó en borrador. Para mostrarla de nuevo, tocá «Publicar».</div>
+	<?php elseif ( ! empty( $_GET['publicada'] ) && 'publish' === $estado && $faltan_oblig ) : ?>
+		<div class="clv-msg clv-info"><strong>¡Listo, tu perfil ya se ve en la web! ✓</strong><br>Aparece como «Perfil en construcción». Cuando completes lo que falta, la marca se va sola.</div>
 	<?php elseif ( ! empty( $_GET['publicada'] ) && 'publish' === $estado ) : ?>
 		<div class="clv-msg clv-info"><strong>¡Listo, tu ficha ya está publicada! ✓</strong><br>Ya se ve en Caminos Locales. Podés seguir cambiándola cuando quieras.</div>
 	<?php elseif ( ! empty( $_GET['enviado'] ) ) : ?>
@@ -1537,12 +1555,32 @@ add_shortcode( 'cl_panel_vista', function () {
 			<?php wp_nonce_field( 'cl_enviar_' . $id, '_clnonce', false ); ?>
 			<button type="submit" class="clv-btn"<?php echo $faltan_oblig ? ' disabled' : ''; ?>><?php echo cl_sin_revision() ? 'Publicar' : 'Enviar a revisión'; ?></button>
 		</form>
+		<?php if ( $faltan_oblig && $minima ) : ?>
+			<div class="clv-box">
+				<h3 class="clv-h">¿Querés aparecer ya?</h3>
+				<?php if ( ! $falta_min ) : ?>
+					<p style="font-size:15px;line-height:1.45;color:#3d4b49;margin:0 0 8px">Podés mostrar tu perfil ahora, con lo que ya cargaste y la marca «Perfil en construcción». Lo completás cuando quieras.</p>
+					<form method="post">
+						<input type="hidden" name="cl_enviar_revision" value="1">
+						<input type="hidden" name="cl_minima" value="1">
+						<input type="hidden" name="emp" value="<?php echo (int) $id; ?>">
+						<?php wp_nonce_field( 'cl_enviar_' . $id, '_clnonce', false ); ?>
+						<button type="submit" class="clv-link" style="width:100%;cursor:pointer;font-family:inherit;font-size:16px"><?php echo cl_sin_revision() ? 'Publicar perfil en construcción' : 'Enviar perfil en construcción a revisión'; ?></button>
+					</form>
+				<?php else : ?>
+					<p style="font-size:15px;line-height:1.45;color:#3d4b49;margin:0 0 4px">Estás a un paso de mostrar tu perfil: cargá <?php echo esc_html( strtolower( implode( ' y ', array_map( function ( $o ) { return $o[0]; }, $falta_min ) ) ) ); ?> y ya aparece tu perfil en construcción.</p>
+					<?php foreach ( $falta_min as $o ) : ?>
+						<div class="clv-row"><span class="clv-i clv-no">✕</span><?php echo esc_html( $o[0] ); ?><a href="<?php echo esc_url( $paso_url( $o[2] ) ); ?>">Completar</a></div>
+					<?php endforeach; ?>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
 	<?php elseif ( 'pending' === $estado ) : ?>
 		<?php if ( empty( $_GET['enviado'] ) ) : ?>
 			<div class="clv-msg clv-info">Tu ficha está en revisión. Te avisamos por email cuando esté publicada. Mientras tanto podés seguir editándola.</div>
 		<?php endif; ?>
 	<?php else : ?>
-		<div class="clv-msg clv-info">Tu ficha está publicada: lo que guardás se ve en la web al momento.<?php echo cl_sin_revision() ? '' : ' El cambio de nombre o de email lo revisamos antes.'; ?></div>
+		<div class="clv-msg clv-info">Tu ficha está publicada: lo que guardás se ve en la web al momento.<?php echo cl_sin_revision() ? '' : ' El cambio de nombre o de email lo revisamos antes.'; ?><?php echo $faltan_oblig ? ' Se ve como «Perfil en construcción» hasta que completes lo marcado con ✕.' : ''; ?></div>
 		<?php // 1.1.2: volver a borrador desde el panel. ?>
 		<div class="clv-box">
 			<h3 class="clv-h">Más opciones</h3>

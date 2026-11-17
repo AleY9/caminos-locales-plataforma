@@ -251,14 +251,15 @@ function cl_srv_es_red() {
 	return function_exists( 'cl_panel_puede_usar' ) && cl_panel_puede_usar() ? '1' : '';
 }
 
-// Teléfono: ficha completa, siempre (ya se publica en su ficha); compacta, si lo eligió; a la red, siempre.
+// Teléfono: el público lo ve si está marcado «Se muestra en la web» (1.2.0, antes telefono_publico solo en
+// la compacta); a la red, siempre.
 function cl_srv_tel( $id = 0 ) {
 	$id  = $id ? (int) $id : get_the_ID();
-	$tel = trim( (string) get_post_meta( $id, 'telefono_contacto', true ) );
+	$tel = trim( (string) ( function_exists( 'cl_meta_crudo' ) ? cl_meta_crudo( $id, 'telefono_contacto' ) : get_post_meta( $id, 'telefono_contacto', true ) ) );
 	if ( '' === $tel ) {
 		return '';
 	}
-	$publico = ! cl_es_servicio( $id ) || 'Sí' === get_post_meta( $id, 'telefono_publico', true );
+	$publico = function_exists( 'cl_contacto_visible' ) ? cl_contacto_visible( $id, 'telefono_contacto' ) : ( ! cl_es_servicio( $id ) || 'Sí' === get_post_meta( $id, 'telefono_publico', true ) );
 	if ( ! $publico && ! cl_srv_es_red() ) {
 		return '';
 	}

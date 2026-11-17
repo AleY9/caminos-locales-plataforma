@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.1.15 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.2.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,24 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.2.0
+* Solicitudes de «Pedí sumarte» (includes/solicitudes.php): el formulario psform (28427) usa la acción
+  «Personalizada». Con lo que manda la persona se crea un emprendimiento en borrador a nombre del admin
+  (nombre, localidad, rubros, WhatsApp, email, web o redes); nunca se publica solo. Correo al admin con
+  «Ver borrador», «Crear invitación» y «Descartar (spam)» (pantalla de confirmación en wp-admin).
+  Antibots propios: token de un solo uso con tiempo mínimo de llenado (campo oculto pstokn =
+  {echo:cl_sol_token}, página sin caché) y hasta 3 envíos por hora por IP.
+* Contacto visible (includes/ficha-minima.php): casillas «Se muestra en la web» en el paso Contacto (clcvis +
+  oculto clcvix), meta _cl_contacto_oculto. En las páginas públicas los datos ocultos se leen vacíos. Reemplaza
+  a «¿Publicamos tu teléfono en la web?» (telefono_publico; las compactas que no lo publicaban quedan con el
+  teléfono oculto). La red sigue viendo el teléfono en Servicios locales y Prestadores.
+* Ficha mínima: «Publicar perfil en construcción» en «Ver cómo queda» cuando falta algo de la ficha completa.
+  Mínimo: nombre, qué ofrece, región y localidad y un contacto visible; si no es ficha compacta, además foto
+  principal y breve descripción. {echo:cl_en_construccion} para la marca «Perfil en construcción» y
+  {echo:cl_srv_icono_ficha} (ícono del rubro para tarjetas sin foto).
+* Listados: Emprendimientos (pvnicx) e Inicio (gcwygx) solo con fichas que cumplen el mínimo (_cl_sin_minimo,
+  por ID). Orden aleatorio con semilla diaria en Emprendimientos, Alojamientos (291c69) e Inicio; purga de
+  LiteSpeed a las 00:05 (cron clp_orden_diario). Experiencias sigue por fecha.
 1.1.15
 * Arreglo urgente: Inicio daba error 500 (la consulta del listado no terminaba). Los filtros que sacan de los
   listados de turismo las fichas compactas (_cl_servicio) y los emprendimientos sin página (_cl_sin_pagina)
