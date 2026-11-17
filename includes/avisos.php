@@ -81,6 +81,7 @@ function clp_aviso_campo( $c ) {
 		'servicio_publico'                        => 'quién lo ve',
 		'ficha_publica'                           => 'página propia',
 		'telefono_publico'                        => 'teléfono público',
+		'contacto_visible'                        => 'qué contacto se muestra',
 		'que_visitar_actividades_zona'            => 'qué visitar en la zona',
 		'recomendaciones_aclaraciones'            => 'recomendaciones',
 		'redes_locales_certificaciones'           => 'redes y certificaciones',

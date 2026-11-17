@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Caminos Locales Plataforma
  * Description:       Panel del emprendedor, fichas y funciones propias de caminoslocales.com (antes, snippets de Code Snippets).
- * Version:           1.1.15
+ * Version:           1.2.0
  * Requires at least: 6.4
  * Requires PHP:      8.0
  * Author:            Liquen Web
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CLP_VERSION', '1.1.15' );
+define( 'CLP_VERSION', '1.2.0' );
 define( 'CLP_FILE', __FILE__ );
 define( 'CLP_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -144,7 +144,13 @@ require_once CLP_DIR . 'includes/especial.php';
 require_once CLP_DIR . 'includes/avisos.php';
 require_once CLP_DIR . 'includes/ficha-publica.php';
 require_once CLP_DIR . 'includes/panel-ayuda.php';
+require_once CLP_DIR . 'includes/solicitudes.php';
+require_once CLP_DIR . 'includes/ficha-minima.php';
 
 register_activation_hook( __FILE__, function () {
 	delete_site_transient( 'update_plugins' );
+} );
+
+register_deactivation_hook( __FILE__, function () {
+	wp_clear_scheduled_hook( 'clp_orden_diario' );
 } );
