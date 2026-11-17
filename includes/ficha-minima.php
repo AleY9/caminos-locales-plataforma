@@ -114,7 +114,12 @@ add_action( 'init', function () {
 // 2. Ficha mínima
 // ======================================================================
 
-// Requisitos de la ficha mínima: array( array( etiqueta, cumple, paso ), … ).
+// Requisitos de la ficha mínima: array( array( etiqueta, cumple, paso, frase para «cargá …» ), … ).
+function cl_lista_y( $partes ) {
+	$ult = array_pop( $partes );
+	return $partes ? implode( ', ', $partes ) . ' y ' . $ult : (string) $ult;
+}
+
 function cl_ficha_minima_chequeo( $id ) {
 	$rubros = wp_get_object_terms( $id, 'rubro', array( 'fields' => 'ids' ) );
 	$region = wp_get_object_terms( $id, 'region', array( 'fields' => 'ids' ) );
@@ -126,14 +131,14 @@ function cl_ficha_minima_chequeo( $id ) {
 		}
 	}
 	$req = array(
-		array( 'Nombre', '' !== trim( get_the_title( $id ) ), 'presentacion' ),
-		array( '¿Qué ofrecés?', ! is_wp_error( $rubros ) && ! empty( $rubros ), 'actividades' ),
-		array( 'Región y localidad', ! is_wp_error( $region ) && $region && '' !== trim( (string) get_post_meta( $id, 'localidad', true ) ), 'ubicacion' ),
-		array( 'Un dato de contacto que se vea en la web', $contac, 'contacto' ),
+		array( 'Nombre', '' !== trim( get_the_title( $id ) ), 'presentacion', 'el nombre' ),
+		array( '¿Qué ofrecés?', ! is_wp_error( $rubros ) && ! empty( $rubros ), 'actividades', 'qué ofrecés' ),
+		array( 'Región y localidad', ! is_wp_error( $region ) && $region && '' !== trim( (string) get_post_meta( $id, 'localidad', true ) ), 'ubicacion', 'la región y la localidad' ),
+		array( 'Un dato de contacto que se vea en la web', $contac, 'contacto', 'un dato de contacto que se vea en la web' ),
 	);
 	if ( ! function_exists( 'cl_es_servicio' ) || ! cl_es_servicio( $id ) ) {
-		$req[] = array( 'Foto principal', (bool) get_post_thumbnail_id( $id ), 'fotos' );
-		$req[] = array( 'Breve descripción (una línea)', '' !== trim( (string) get_post_meta( $id, 'breve_descripcion', true ) ), 'presentacion' );
+		$req[] = array( 'Foto principal', (bool) get_post_thumbnail_id( $id ), 'fotos', 'una foto principal' );
+		$req[] = array( 'Breve descripción (una línea)', '' !== trim( (string) get_post_meta( $id, 'breve_descripcion', true ) ), 'presentacion', 'una breve descripción' );
 	}
 	return $req;
 }

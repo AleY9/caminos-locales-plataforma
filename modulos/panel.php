@@ -1568,7 +1568,7 @@ add_shortcode( 'cl_panel_vista', function () {
 						<button type="submit" class="clv-link" style="width:100%;cursor:pointer;font-family:inherit;font-size:16px"><?php echo cl_sin_revision() ? 'Publicar perfil en construcción' : 'Enviar perfil en construcción a revisión'; ?></button>
 					</form>
 				<?php else : ?>
-					<p style="font-size:15px;line-height:1.45;color:#3d4b49;margin:0 0 4px">Estás a un paso de mostrar tu perfil: cargá <?php echo esc_html( strtolower( implode( ' y ', array_map( function ( $o ) { return $o[0]; }, $falta_min ) ) ) ); ?> y ya aparece tu perfil en construcción.</p>
+					<p style="font-size:15px;line-height:1.45;color:#3d4b49;margin:0 0 4px">Estás a un paso de mostrar tu perfil: cargá <?php echo esc_html( cl_lista_y( array_map( function ( $o ) { return $o[3]; }, $falta_min ) ) ); ?> y ya aparece tu perfil en construcción.</p>
 					<?php foreach ( $falta_min as $o ) : ?>
 						<div class="clv-row"><span class="clv-i clv-no">✕</span><?php echo esc_html( $o[0] ); ?><a href="<?php echo esc_url( $paso_url( $o[2] ) ); ?>">Completar</a></div>
 					<?php endforeach; ?>
