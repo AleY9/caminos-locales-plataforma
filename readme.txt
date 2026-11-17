@@ -58,7 +58,7 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Mínimo: nombre, qué ofrece, región y localidad y un contacto visible; si no es ficha compacta, además foto
   principal y breve descripción. {echo:cl_en_construccion} para la marca «Perfil en construcción» (solo fichas
   completas: las compactas no tienen página) y
-  {echo:cl_srv_icono_ficha} (ícono del rubro para tarjetas sin foto).
+  [cl_srv_icono_ficha] (ícono del rubro para tarjetas sin foto; la condición usa {echo:cl_srv_icono_ficha}).
 * Listados: Emprendimientos (pvnicx) e Inicio (gcwygx) solo con fichas que cumplen el mínimo (_cl_sin_minimo,
   por ID). Orden aleatorio con semilla diaria en Emprendimientos, Alojamientos (291c69) e Inicio; purga de
   LiteSpeed a las 00:05 (cron clp_orden_diario). Experiencias sigue por fecha.

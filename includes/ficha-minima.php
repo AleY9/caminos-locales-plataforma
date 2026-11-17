@@ -10,7 +10,7 @@
  *
  * 2. Ficha mínima («Perfil en construcción»): el emprendedor puede publicar con lo mínimo y completar después.
  *    Servicio (ficha compacta): nombre, qué ofrece, región y localidad y un contacto visible (sin foto: la tarjeta
- *    usa el ícono del rubro, {echo:cl_srv_icono_ficha}). El resto: además, foto principal y breve descripción.
+ *    usa el ícono del rubro: shortcode [cl_srv_icono_ficha]). El resto: además, foto principal y breve descripción.
  *    Mientras le falte algo de la ficha completa, _cl_en_construccion = 1 y {echo:cl_en_construccion} da 1
  *    (marca «Perfil en construcción — próximamente más información» en Bricks).
  *
@@ -248,8 +248,14 @@ function cl_srv_icono_ficha( $id = 0 ) {
 			break;
 		}
 	}
-	return '<span class="cl-icono-rubro">' . str_replace( 'width="20" height="20"', 'width="48" height="48"', cl_srv_icono( $slug ) ) . '</span>';
+	return '<span class="cl-icono-rubro">' . str_replace( 'width="20" height="20"', 'width="32" height="32"', cl_srv_icono( $slug ) ) . '</span>';
 }
+
+// [cl_srv_icono_ficha] — lo mismo como shortcode: Bricks limpia el SVG que llega por {echo:…}.
+// En Bricks: elemento Shortcode con condición {echo:cl_srv_icono_ficha} no vacío.
+add_shortcode( 'cl_srv_icono_ficha', function () {
+	return cl_srv_icono_ficha();
+} );
 
 // ======================================================================
 // 3. Listados
