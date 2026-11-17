@@ -117,7 +117,10 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 
 	$emp_id = clp_sol_crear_borrador( compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros', 'ip_h' ) );
 	clp_sol_avisar( $emp_id, compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros' ) );
-	clp_sol_confirmar( $settings, $f, $email );
+	// Si el formulario todavía tiene también la acción Email de Bricks, la confirmación ya la manda Bricks.
+	if ( ! in_array( 'email', (array) ( $settings['actions'] ?? array() ), true ) ) {
+		clp_sol_confirmar( $settings, $f, $email );
+	}
 	$ok();
 } );
 
@@ -208,31 +211,39 @@ function clp_sol_url( $emp_id, $hacer ) {
 }
 
 function clp_sol_avisar( $emp_id, $d ) {
-	$txt  = $d['persona'] . ' pidió sumarse desde la web.' . "\n\n";
-	$txt .= 'Emprendimiento o servicio: ' . $d['nombre'] . "\n";
-	$txt .= 'Localidad: ' . $d['local'] . "\n";
-	$txt .= 'Qué ofrece: ' . ( $d['rubros'] ? implode( ', ', $d['rubros'] ) : '(no marcó nada)' ) . "\n";
-	$txt .= 'WhatsApp: ' . $d['tel'] . "\n";
-	$txt .= '' !== $d['email'] ? 'Email: ' . $d['email'] . "\n" : '';
-	$txt .= '' !== $d['redes'] ? 'Web o redes: ' . $d['redes'] . "\n" : '';
-	$txt .= '' !== $d['mensaje'] ? "\nMensaje:\n" . $d['mensaje'] . "\n" : '';
+	$fila = function ( $k, $v ) {
+		return '' === trim( (string) $v ) ? '' : '<tr><td style="padding:6px 10px;font-weight:700;vertical-align:top;color:#1f4645">' . esc_html( $k ) . '</td><td style="padding:6px 10px">' . nl2br( esc_html( $v ) ) . '</td></tr>';
+	};
+	$boton = function ( $txt, $url, $fondo = '#1f4645' ) {
+		return '<a href="' . esc_url( $url ) . '" style="display:inline-block;margin:0 8px 8px 0;padding:10px 16px;border-radius:10px;background:' . $fondo . ';color:#fff;font-weight:700;text-decoration:none">' . esc_html( $txt ) . '</a>';
+	};
+	$h  = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#23302f;line-height:1.5">';
+	$h .= '<p style="font-size:17px;font-weight:700;color:#1f4645">Nueva solicitud para sumarse a Caminos Locales</p>';
+	$h .= '<table style="border-collapse:collapse">';
+	$h .= $fila( 'Nombre', $d['persona'] ) . $fila( 'Emprendimiento o servicio', $d['nombre'] ) . $fila( 'Localidad', $d['local'] );
+	$h .= $fila( 'Qué ofrece', $d['rubros'] ? implode( ', ', $d['rubros'] ) : '(no marcó nada)' );
+	$h .= $fila( 'WhatsApp', $d['tel'] ) . $fila( 'Email', $d['email'] ) . $fila( 'Web o redes', $d['redes'] ) . $fila( 'Mensaje', $d['mensaje'] );
+	$h .= '</table>';
 	if ( $emp_id ) {
 		foreach ( clp_sol_parecidas( $emp_id, $d['nombre'] ) as $p ) {
-			$txt .= "\nOjo: ya hay una ficha con ese nombre: " . get_the_title( $p ) . ' (' . get_post_status( $p ) . ') ' . admin_url( 'post.php?post=' . $p . '&action=edit' ) . "\n";
+			$h .= '<p style="background:#fdf0d5;border-radius:10px;padding:10px 12px;color:#5c3a00">Ojo: ya hay una ficha con ese nombre: <a href="' . esc_url( admin_url( 'post.php?post=' . $p . '&action=edit' ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a> (' . esc_html( get_post_status( $p ) ) . ').</p>';
 		}
-		$txt .= "\nSe creó un borrador con estos datos (no se publica solo).\n\n";
-		$txt .= 'Ver borrador: ' . ( function_exists( 'cl_panel_url_vista' ) ? cl_panel_url_vista( $emp_id ) : get_permalink( $emp_id ) ) . "\n";
-		$txt .= 'Completarlo en Mi panel: ' . home_url( '/panel/?emp=' . $emp_id ) . "\n";
-		$txt .= 'Crear invitación: ' . clp_sol_url( $emp_id, 'invitar' ) . "\n";
-		$txt .= 'Descartar (spam): ' . clp_sol_url( $emp_id, 'descartar' ) . "\n";
+		$h .= '<p>Se creó un borrador con estos datos. No se publica solo.</p><p>';
+		$h .= $boton( 'Ver borrador', function_exists( 'cl_panel_url_vista' ) ? cl_panel_url_vista( $emp_id ) : get_permalink( $emp_id ) );
+		$h .= $boton( 'Completar en Mi panel', home_url( '/panel/?emp=' . $emp_id ) );
+		$h .= $boton( 'Crear invitación', clp_sol_url( $emp_id, 'invitar' ) );
+		$h .= $boton( 'Descartar (spam)', clp_sol_url( $emp_id, 'descartar' ), '#8a2a1f' );
+		$h .= '</p>';
 	} else {
-		$txt .= "\nNo se pudo crear el borrador: cargalo a mano desde Mi panel.\n";
+		$h .= '<p>No se pudo crear el borrador: cargalo a mano desde Mi panel.</p>';
 	}
-	$cab = array();
+	$h .= '<p style="font-size:13px;color:#5b6a68">Respondé este correo para escribirle directamente. Enviado desde «Pedí sumarte» de caminoslocales.com.</p></div>';
+
+	$cab = array( 'Content-Type: text/html; charset=UTF-8' );
 	if ( is_email( $d['email'] ) ) {
 		$cab[] = 'Reply-To: ' . str_replace( array( "\r", "\n", '<', '>', ',' ), '', $d['persona'] ) . ' <' . $d['email'] . '>';
 	}
-	wp_mail( get_option( 'admin_email' ), '[Caminos Locales] Pedido para sumarse: ' . $d['nombre'], $txt, $cab );
+	wp_mail( get_option( 'admin_email' ), '[Caminos Locales] Pedido para sumarse: ' . $d['nombre'] . ' (' . $d['local'] . ')', $h, $cab );
 }
 
 // Correo de confirmación a quien pidió sumarse. El texto se edita en Bricks (formulario psform, acción Email →

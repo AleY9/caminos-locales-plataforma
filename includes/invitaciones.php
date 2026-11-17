@@ -271,6 +271,13 @@ function clp_inv_dueno( $ficha ) {
 // Mensaje de WhatsApp de una invitación.
 function clp_inv_mensaje( $v ) {
 	$f = ! empty( $v['ficha'] ) ? (int) $v['ficha'] : 0;
+	// 1.2.1: si la ficha salió de «Pedí sumarte», el mensaje responde a ese pedido (que no parezca otra cosa).
+	$sol = $f ? get_post_meta( $f, '_cl_solicitud', true ) : '';
+	if ( is_array( $sol ) ) {
+		$hola = ! empty( $sol['persona'] ) ? '¡Hola, ' . strtok( $sol['persona'], ' ' ) . '!' : '¡Hola!';
+		return $hola . ' Te escribo por tu pedido para sumar ' . get_the_title( $f ) . ' a Caminos Locales. Ya armamos tu ficha con los datos que mandaste. '
+			. 'Con este enlace creás tu cuenta y entrás a tu panel para completarla y publicarla cuando quieras (sirve una sola vez): ' . $v['enlace'];
+	}
 	return $f
 		? 'Hola! Ya cargamos la ficha de ' . get_the_title( $f ) . ' en Caminos Locales. Con este enlace creás tu cuenta y la podés revisar y cambiar cuando quieras (sirve una sola vez): ' . $v['enlace']
 		: 'Hola! Te invito a sumar tu emprendimiento a Caminos Locales. Con este enlace creás tu cuenta y cargás tu ficha (sirve una sola vez): ' . $v['enlace'];
