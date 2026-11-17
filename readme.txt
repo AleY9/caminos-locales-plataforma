@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.2.1 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.2.2 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,9 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.2.2
+* «Crear invitación» o «Descartar» sobre una solicitud que ya está en la papelera: avisa que está descartada y
+  lleva a la papelera, en lugar de crear una invitación para una ficha que no existe (después daba 404).
 1.2.1
 * Invitación para una ficha que vino de «Pedí sumarte»: el mensaje de WhatsApp responde a ese pedido («Te escribo
   por tu pedido para sumar…»), para que no parezca otra cosa.

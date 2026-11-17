@@ -288,6 +288,16 @@ add_action( 'admin_post_clp_solicitud', function () {
 		wp_die( '<h1 style="font-size:22px">' . esc_html( $titulo ) . '</h1>' . $cuerpo, esc_html( $titulo ), array( 'response' => 200 ) );
 	};
 
+	// 1.2.2: una solicitud descartada está en la papelera: ni borrador ni invitación hasta restaurarla.
+	if ( 'trash' === get_post_status( $emp ) ) {
+		$pagina(
+			'Solicitud descartada',
+			'<p>' . esc_html( '«' . $nombre . '» está en la papelera, así que no se puede ver ni invitar.' ) . '</p>' .
+			'<p>' . esc_html( 'Si querés retomarla, restaurala y volvé a usar el botón del correo.' ) . '</p>' .
+			'<p><a class="button" href="' . esc_url( admin_url( 'edit.php?post_status=trash&post_type=emprendimientos' ) ) . '">Ir a la papelera</a></p>'
+		);
+	}
+
 	// Primero se confirma (el enlace del correo no lleva nonce: los nonces son de cada sesión).
 	if ( 'POST' !== $_SERVER['REQUEST_METHOD'] || ! isset( $_POST['_clnonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['_clnonce'] ), 'clp_sol_' . $hacer . '_' . $emp ) ) {
 		$boton = 'invitar' === $hacer ? 'Crear invitación' : 'Descartar (va a la papelera)';
