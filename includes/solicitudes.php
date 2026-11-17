@@ -5,7 +5,8 @@
  * El formulario psform de «Pedí sumarte» (página 28427) usa la acción «Personalizada» de Bricks, que resuelve este
  * archivo. Con lo que manda la persona se crea un emprendimiento en borrador, a nombre del administrador:
  * nombre, localidad, rubros de «¿Qué ofrecés?», WhatsApp, email y web o redes. Nunca se publica solo.
- * Al administrador le llega un correo con «Ver borrador», «Crear invitación» y «Descartar (spam)».
+ * Al administrador le llega un correo con «Ver borrador», «Crear invitación» y «Descartar (spam)», y a la persona
+ * el correo de confirmación que está escrito en Bricks. El formulario ya no usa la acción Email de Bricks.
  *
  * Antibots (además del honeypot de Bricks): token de un solo uso con tiempo mínimo de llenado
  * (campo oculto pstokn = {echo:cl_sol_token}) y límite de envíos por IP. La página no se guarda en caché.
@@ -116,6 +117,7 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 
 	$emp_id = clp_sol_crear_borrador( compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros', 'ip_h' ) );
 	clp_sol_avisar( $emp_id, compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros' ) );
+	clp_sol_confirmar( $settings, $f, $email );
 	$ok();
 } );
 
@@ -231,6 +233,29 @@ function clp_sol_avisar( $emp_id, $d ) {
 		$cab[] = 'Reply-To: ' . str_replace( array( "\r", "\n", '<', '>', ',' ), '', $d['persona'] ) . ' <' . $d['email'] . '>';
 	}
 	wp_mail( get_option( 'admin_email' ), '[Caminos Locales] Pedido para sumarse: ' . $d['nombre'], $txt, $cab );
+}
+
+// Correo de confirmación a quien pidió sumarse. El texto se edita en Bricks (formulario psform, acción Email →
+// «Confirmation email»): asunto y contenido, con {{psnomb}}, {{psempr}}, etc. Remitente: «From» del formulario.
+function clp_sol_confirmar( $settings, $f, $email ) {
+	if ( ! is_email( $email ) || empty( $settings['confirmationEmailContent'] ) ) {
+		return;
+	}
+	$reemplazar = function ( $texto, $html ) use ( $f ) {
+		return preg_replace_callback( '/\{\{\s*([a-z0-9]+)\s*\}\}/i', function ( $m ) use ( $f, $html ) {
+			$v = $f[ 'form-field-' . $m[1] ] ?? '';
+			$v = is_array( $v ) ? implode( ', ', $v ) : (string) $v;
+			$v = sanitize_text_field( $v );
+			return $html ? esc_html( $v ) : $v;
+		}, (string) $texto );
+	};
+	$asunto = $reemplazar( $settings['confirmationEmailSubject'] ?? 'Recibimos tu solicitud – Caminos Locales', false );
+	$cuerpo = $reemplazar( $settings['confirmationEmailContent'], true );
+	$cab    = array( 'Content-Type: text/html; charset=UTF-8' );
+	if ( ! empty( $settings['fromEmail'] ) && is_email( $settings['fromEmail'] ) ) {
+		$cab[] = 'From: ' . str_replace( array( "\r", "\n", '<', '>' ), '', $settings['fromName'] ?? 'Caminos Locales' ) . ' <' . $settings['fromEmail'] . '>';
+	}
+	wp_mail( $email, $asunto, $cuerpo, $cab );
 }
 
 // ---------- Acciones de Ale: crear invitación o descartar ----------
