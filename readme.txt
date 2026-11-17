@@ -52,11 +52,12 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   {echo:cl_sol_token}, página sin caché) y hasta 3 envíos por hora por IP.
 * Contacto visible (includes/ficha-minima.php): casillas «Se muestra en la web» en el paso Contacto (clcvis +
   oculto clcvix), meta _cl_contacto_oculto. En las páginas públicas los datos ocultos se leen vacíos. Reemplaza
-  a «¿Publicamos tu teléfono en la web?» (telefono_publico; las compactas que no lo publicaban quedan con el
-  teléfono oculto). La red sigue viendo el teléfono en Servicios locales y Prestadores.
+  a «¿Publicamos tu teléfono en la web?» (telefono_publico): las compactas que respondieron «No» quedan con el
+  teléfono oculto; las que no respondieron pasan a mostrarlo. La red sigue viendo el teléfono en Servicios locales y Prestadores.
 * Ficha mínima: «Publicar perfil en construcción» en «Ver cómo queda» cuando falta algo de la ficha completa.
   Mínimo: nombre, qué ofrece, región y localidad y un contacto visible; si no es ficha compacta, además foto
-  principal y breve descripción. {echo:cl_en_construccion} para la marca «Perfil en construcción» y
+  principal y breve descripción. {echo:cl_en_construccion} para la marca «Perfil en construcción» (solo fichas
+  completas: las compactas no tienen página) y
   {echo:cl_srv_icono_ficha} (ícono del rubro para tarjetas sin foto).
 * Listados: Emprendimientos (pvnicx) e Inicio (gcwygx) solo con fichas que cumplen el mínimo (_cl_sin_minimo,
   por ID). Orden aleatorio con semilla diaria en Emprendimientos, Alojamientos (291c69) e Inicio; purga de

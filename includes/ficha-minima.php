@@ -95,14 +95,15 @@ function cl_contacto_guardar( $id, $visibles ) {
 	return true;
 }
 
-// Una vez: la ficha compacta que no publicaba el teléfono (telefono_publico ≠ Sí) pasa a tenerlo oculto.
+// Una vez: la ficha compacta que eligió no publicar el teléfono (telefono_publico = No) pasa a tenerlo oculto.
+// Sin respuesta, queda visible (antes se ocultaba: la mayoría quiere que la contacten).
 add_action( 'init', function () {
 	if ( get_option( 'cl_contacto_migrado' ) || ! function_exists( 'cl_es_servicio' ) ) {
 		return;
 	}
 	$ids = get_posts( array( 'post_type' => 'emprendimientos', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ) );
 	foreach ( $ids as $id ) {
-		if ( cl_es_servicio( $id ) && 'Sí' !== get_post_meta( $id, 'telefono_publico', true ) ) {
+		if ( cl_es_servicio( $id ) && 'No' === get_post_meta( $id, 'telefono_publico', true ) ) {
 			update_post_meta( $id, '_cl_contacto_oculto', array_values( array_unique( array_merge( cl_contacto_ocultos( $id ), array( 'telefono_contacto' ) ) ) ) );
 		}
 	}
@@ -165,7 +166,9 @@ function cl_ficha_minima_sync( $id ) {
 		return;
 	}
 	$completa = cl_ficha_completa_ok( $id );
-	update_post_meta( $id, '_cl_en_construccion', ( 'publish' === get_post_status( $id ) && ! $completa ) ? '1' : '0' );
+	// La marca va en la página del emprendimiento: las fichas compactas no tienen página.
+	$compacta = function_exists( 'cl_es_servicio' ) && cl_es_servicio( $id );
+	update_post_meta( $id, '_cl_en_construccion', ( 'publish' === get_post_status( $id ) && ! $completa && ! $compacta ) ? '1' : '0' );
 	// La mínima de un emprendimiento ya pide foto; las compactas no van a estos listados.
 	update_post_meta( $id, '_cl_sin_minimo', ( $completa || cl_ficha_minima_ok( $id ) ) ? '0' : '1' );
 }
@@ -203,14 +206,14 @@ function cl_ficha_minima_meta( $mid, $id, $clave ) {
 
 // Una vez por versión: recalcula todos.
 add_action( 'init', function () {
-	if ( get_option( 'cl_ficha_minima_sync' ) === CLP_VERSION || ! function_exists( 'cl_panel_revision_chequeo' ) ) {
+	if ( get_option( 'cl_ficha_minima_sync' ) === CLP_VERSION . '.1' || ! function_exists( 'cl_panel_revision_chequeo' ) ) {
 		return;
 	}
 	$ids = get_posts( array( 'post_type' => 'emprendimientos', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ) );
 	foreach ( $ids as $id ) {
 		cl_ficha_minima_sync( $id );
 	}
-	update_option( 'cl_ficha_minima_sync', CLP_VERSION, false );
+	update_option( 'cl_ficha_minima_sync', CLP_VERSION . '.1', false );
 }, 33 );
 
 // ---------- Para Bricks ----------
