@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.2.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.2.1 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,12 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.2.1
+* Invitación para una ficha que vino de «Pedí sumarte»: el mensaje de WhatsApp responde a ese pedido («Te escribo
+  por tu pedido para sumar…»), para que no parezca otra cosa.
+* El aviso de una solicitud pasa a HTML, con el mismo formato que el de Bricks y botones (Ver borrador,
+  Completar en Mi panel, Crear invitación, Descartar).
+* Si psform tiene también la acción Email de Bricks (transición), el plugin no repite la confirmación.
 1.2.0
 * Solicitudes de «Pedí sumarte» (includes/solicitudes.php): el formulario psform (28427) usa la acción
   «Personalizada». Con lo que manda la persona se crea un emprendimiento en borrador a nombre del admin
