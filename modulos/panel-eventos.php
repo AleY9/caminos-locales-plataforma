@@ -1695,7 +1695,7 @@ add_shortcode( 'cl_panel_ev_fotos', function () {
 .clf-ocupado .clf-btn{opacity:.5;pointer-events:none}
 </style>
 <div class="clf" data-ev="<?php echo (int) $id; ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'cl_fotos_ev_' . $id ) ); ?>" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
-	<p class="clf-p">Subí las fotos tal como salen del celular: nosotros las achicamos. Cada foto se guarda sola, apenas termina de subir. Si todavía no la hiciste, usá fotos de una edición anterior o del lugar.</p>
+	<p class="clf-p">Subí las fotos tal como salen del celular: nosotros las achicamos. Cada foto se guarda sola, apenas termina de subir. Si la experiencia todavía no se hizo, podés usar fotos de otras veces o del lugar.</p>
 	<div class="clf-sec"><?php echo $tarjeta( 'principal', 'Foto principal', 'La que aparece en el listado. Mejor con personas haciendo la actividad. Si no tenés, alcanza con el afiche.' ); // phpcs:ignore ?></div>
 	<div class="clf-sec"><?php echo $tarjeta( 'afiche', 'Afiche (opcional)', 'Si ya tenés el afiche, por ejemplo el de Instagram, subilo acá: se ve completo en la ficha. Si no hay foto principal, se usa también en el listado. La fecha, el lugar y el precio cargalos igual en Datos: el texto del afiche no lo lee Google.' ); // phpcs:ignore ?></div>
 	<div class="clf-sec">
