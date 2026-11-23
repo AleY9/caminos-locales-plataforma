@@ -47,6 +47,8 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
 * Directorio de la red: los emprendimientos sin página propia (solo sus alojamientos, como Gaia) llevan a su
   primer alojamiento publicado. Función nueva cl_red_ficha_txt: «Ver alojamiento →» en esos casos y «Ver ficha →»
   en el resto. En Bricks, el texto de prinf0 (página 28993 / 28899) pasa a {echo:cl_red_ficha_txt}.
+* Títulos sin punto final (includes/titulos.php): al guardar se saca el punto final del nombre de emprendimientos,
+  alojamientos y experiencias, y de la localidad. No toca «...», «…» ni «etc.».
 1.3.1
 * Directorio de la red: en el paso Contacto, la casilla única pasa a «¿Qué se muestra en el directorio de la red?»
   con Teléfono / WhatsApp (marcada por defecto) y Email (desmarcada por defecto; se muestra solo si el emprendedor

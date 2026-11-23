@@ -149,6 +149,7 @@ require_once CLP_DIR . 'includes/ficha-minima.php';
 require_once CLP_DIR . 'includes/orden-alojamientos.php';
 require_once CLP_DIR . 'includes/orden-experiencias.php';
 require_once CLP_DIR . 'includes/directorio-red.php';
+require_once CLP_DIR . 'includes/titulos.php';
 
 register_activation_hook( __FILE__, function () {
 	delete_site_transient( 'update_plugins' );
