@@ -372,6 +372,9 @@ function cl_panel_valor( $campo ) {
 		case 'contacto_visible':
 			// 1.2.0: casillas «Se muestra en la web» (clcvis). Por defecto, todas marcadas.
 			return function_exists( 'cl_contacto_ocultos' ) ? implode( ',', array_diff( array_keys( cl_contacto_campos() ), cl_contacto_ocultos( $id ) ) ) : '';
+		case 'red_visible':
+			// 1.3.0: casilla «Mostrar mi contacto en el directorio de la red». Por defecto, marcada.
+			return ! function_exists( 'cl_red_visible' ) || cl_red_visible( $id ) ? 'Sí' : '';
 		case 'idiomas_lista':
 		case 'idiomas_otro':
 			$sep = cl_panel_idiomas_separar( get_field( 'idiomas', $id, false ) );
@@ -557,6 +560,7 @@ function cl_panel_campos_permitidos() {
 		'url_sitio_web'                 => array( 'tipo' => 'url', 'max' => 300 ),
 		'instagramemp'                  => array( 'tipo' => 'instagram', 'max' => 200 ),
 		'facebookemp'                   => array( 'tipo' => 'facebook', 'max' => 300 ),
+		'persona_contacto'              => array( 'tipo' => 'texto', 'max' => 80 ), // 1.3.0, directorio de la red
 		// Paso Contacto, solo servicios (1.1.0)
 		'servicio_publico'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
 		'telefono_publico'              => array( 'tipo' => 'opcion', 'opciones' => array( 'Sí', 'No' ) ),
@@ -620,6 +624,7 @@ function cl_panel_pasos() {
 			'clweb'  => 'url_sitio_web',
 			'clinst' => 'instagramemp',
 			'clface' => 'facebookemp',
+			'clpers' => 'persona_contacto', // 1.3.0
 			'clspub' => 'servicio_publico',
 			'cltpub' => 'telefono_publico',
 		),
@@ -948,6 +953,13 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	if ( 'contacto' === $paso && ! empty( $f['form-field-clcvix'] ) && function_exists( 'cl_contacto_guardar' ) ) {
 		if ( cl_contacto_guardar( $emp_id, isset( $f['form-field-clcvis'] ) ? (array) $f['form-field-clcvis'] : array() ) ) {
 			$cambios[] = 'contacto_visible';
+		}
+	}
+
+	// 1.3.0: «Mostrar mi contacto en el directorio de la red» (casilla clcred + oculto clcrex).
+	if ( 'contacto' === $paso && ! empty( $f['form-field-clcrex'] ) && function_exists( 'cl_red_guardar' ) ) {
+		if ( cl_red_guardar( $emp_id, ! empty( $f['form-field-clcred'] ) ) ) {
+			$cambios[] = 'red_visible';
 		}
 	}
 

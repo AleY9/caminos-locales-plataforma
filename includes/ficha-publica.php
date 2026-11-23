@@ -93,15 +93,14 @@ add_action( 'acf/include_fields', function () {
 
 // ---------- Página: redirige al primer alojamiento ----------
 
-// Primer alojamiento publicado del emprendimiento (por título), o 0.
+// Primer alojamiento publicado del emprendimiento (en el orden que eligió, 1.3.0), o 0.
 function cl_emp_primer_alojamiento( $emp ) {
 	$ids = get_posts( array(
 		'post_type'      => 'alojamiento',
 		'post_status'    => 'publish',
 		'posts_per_page' => 1,
 		'fields'         => 'ids',
-		'orderby'        => 'title',
-		'order'          => 'ASC',
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'ASC' ), // 1.3.0: el que eligió primero
 		'no_found_rows'  => true,
 		'meta_query'     => array( array( 'key' => 'emprendimiento_correspondiente', 'value' => '"' . (int) $emp . '"', 'compare' => 'LIKE' ) ),
 	) );

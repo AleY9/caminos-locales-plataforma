@@ -1079,7 +1079,7 @@ function cl_ev_acciones_lista( $e ) {
 		$h .= wp_nonce_field( 'cl_ev_' . $accion . '_' . $e, '_clnonce', false, false );
 		return $h . '<button type="submit" class="cle-acc-b' . ( 'borrar' === $accion ? ' cle-borrar' : '' ) . '"' . ( $confirma ? ' data-confirma="' . esc_attr( $confirma ) . '"' : '' ) . '>' . esc_html( $texto ) . '</button></form>';
 	};
-	$h      = '';
+	$h      = function_exists( 'cl_ev_orden_botones' ) ? cl_ev_orden_botones( $e ) : ''; // 1.3.0: ↑ ↓
 	$pasado = cl_ev_pasado( $e );
 	if ( 'publish' === get_post_status( $e ) && ! $pasado ) {
 		$h .= $btn( 'ocultar', 'Ocultar', '¿Seguro? Tocá de nuevo' );
@@ -1208,8 +1208,11 @@ add_shortcode( 'cl_panel_eventos', function () {
 		$h .= '<div class="cle-info"><div class="cle-t">' . esc_html( get_the_title( $e ) ) . '</div><div class="cle-f">' . cl_ev_cuando_corto( $e ) . '</div>';
 		$h .= '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' . cl_ev_chip( $e ) . ( $faltan ? '<span class="cle-s">Falta: ' . esc_html( implode( ', ', $faltan ) ) . '</span>' : '' ) . '</div></div>';
 		$h .= '<span class="cle-go" aria-hidden="true">→</span></a>';
-		return '<div class="cle-item">' . $h . cl_ev_acciones_lista( $e ) . '</div>';
+		return '<div class="cle-item" id="cle-' . (int) $e . '">' . $h . cl_ev_acciones_lista( $e ) . '</div>';
 	};
+	if ( function_exists( 'cl_ev_orden_ayuda' ) ) {
+		echo cl_ev_orden_ayuda( $emp ); // phpcs:ignore
+	}
 	foreach ( $activos as $e ) {
 		echo $card( $e ); // phpcs:ignore
 	}

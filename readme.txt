@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.2.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.3.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,26 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.3.0
+* Orden de los alojamientos (includes/orden-alojamientos.php): en «Mis alojamientos», botones ↑ ↓ para elegir
+  cuál se ve primero (pedido de Cabañas Don Cleto). Se guarda en menu_order (1, 2, 3…); los nuevos y los
+  duplicados van al final. Una vez, al actualizar: se numeran los que ya existen por fecha de creación.
+  En Bricks, los bucles de alojamientos del emprendimiento ordenan por «Menu order» ascendente: Single
+  Emprendimientos zhynze y yxyjhi, Single Alojamiento 0n16mf («Más alojamientos»). La redirección de los
+  emprendimientos sin página propia va al primero de ese orden.
+* Orden de las experiencias (includes/orden-experiencias.php): las que tienen fecha siguen ordenándose solas
+  por fecha; las de «Todo el año o a coordinar» van después en el orden que elige el emprendedor con ↑ ↓ en
+  «Mis experiencias». Se guarda en menu_order y en _cl_ev_orden = 90000000 + menu_order (antes 99999999), así
+  que lo respetan todos los listados (ficha del emprendimiento, «Otras experiencias», Experiencias). Una vez:
+  se numeran las existentes por nombre (el orden en que se veían).
+* Directorio de la red (includes/directorio-red.php): página /panel/red/ (hija de Mi panel) con todos los
+  emprendimientos publicados, su persona de contacto, teléfono, WhatsApp y email, solo para la red. Bucle de
+  Bricks con la clase cl-loop-red; funciones {echo:cl_red_persona}, cl_red_tel, cl_red_wa, cl_red_email,
+  cl_red_lugar, cl_red_rubros, cl_red_ficha, cl_red_oculto; filtros con [cl_red_filtros] (?rubro= y ?q=).
+* Paso Contacto: campo «Persona de contacto» (clpers → persona_contacto) y casilla «Mostrar mi teléfono, WhatsApp
+  y email en el directorio de la red» (clcred + oculto clcrex, marcada por defecto). Desmarcada: meta
+  _cl_red_oculto = 1; la ficha sigue en el directorio sin datos de contacto. Mi panel: tarjeta «Directorio de la
+  red» (clpred).
 1.2.3
 * Paso Fotos de la experiencia: el texto de arriba dice «Si la experiencia todavía no se hizo, podés usar
   fotos de otras veces o del lugar» (antes: «Si todavía no la hiciste, usá fotos de una edición anterior…»).
