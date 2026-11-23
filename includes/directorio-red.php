@@ -10,7 +10,8 @@
  *                     de la cuenta del dueño)
  *   cl_red_tel()      teléfono con formato · cl_red_wa() enlace de WhatsApp · cl_red_email() email
  *   cl_red_lugar()    «Aiguá · Región Este» · cl_red_rubros() «Alojamiento · Comida»
- *   cl_red_ficha()    dirección de la ficha (vacío si no tiene página pública)
+ *   cl_red_ficha()    dirección de la ficha; sin página propia, la de su primer alojamiento (1.3.2)
+ *   cl_red_ficha_txt() «Ver ficha →» o «Ver alojamiento →» (1.3.2)
  *   cl_red_oculto()   1 si la ficha no muestra ningún dato de contacto a la red
  *   cl_red_filtro_rubros() botones de rubro (shortcode [cl_red_filtros])
  *
@@ -128,16 +129,29 @@ function cl_red_rubros( $id = 0 ) {
 	return is_wp_error( $t ) ? '' : implode( ' · ', $t );
 }
 
+// Sin página propia (solo sus alojamientos): el primer alojamiento publicado, en el orden que eligió (1.3.2).
+function cl_red_ficha_alojamiento( $id ) {
+	if ( ! function_exists( 'cl_emp_sin_pagina' ) || ! cl_emp_sin_pagina( $id ) ) {
+		return 0;
+	}
+	return function_exists( 'cl_emp_primer_alojamiento' ) ? cl_emp_primer_alojamiento( $id ) : 0;
+}
+
 function cl_red_ficha( $id = 0 ) {
 	$id = cl_red_id( $id );
 	if ( function_exists( 'cl_emp_sin_pagina' ) && cl_emp_sin_pagina( $id ) ) {
-		return ''; // Sin página propia (p. ej. solo sus alojamientos).
+		$aloj = cl_red_ficha_alojamiento( $id );
+		return $aloj ? (string) get_permalink( $aloj ) : '';
 	}
 	return (string) get_permalink( $id );
 }
 
+function cl_red_ficha_txt( $id = 0 ) {
+	return cl_red_ficha_alojamiento( cl_red_id( $id ) ) ? 'Ver alojamiento →' : 'Ver ficha →';
+}
+
 add_filter( 'bricks/code/echo_function_names', function ( $names ) {
-	return array_merge( (array) $names, array( 'cl_red_persona', 'cl_red_tel', 'cl_red_wa', 'cl_red_email', 'cl_red_lugar', 'cl_red_rubros', 'cl_red_ficha', 'cl_red_oculto' ) );
+	return array_merge( (array) $names, array( 'cl_red_persona', 'cl_red_tel', 'cl_red_wa', 'cl_red_email', 'cl_red_lugar', 'cl_red_rubros', 'cl_red_ficha', 'cl_red_ficha_txt', 'cl_red_oculto' ) );
 } );
 
 // Bucle del directorio.
