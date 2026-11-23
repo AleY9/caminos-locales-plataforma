@@ -54,8 +54,7 @@ function cl_aloj_de_emp( $emp ) {
 		'post_status' => array( 'publish', 'draft', 'pending' ),
 		'numberposts' => 50,
 		'fields'      => 'ids',
-		'orderby'     => 'title',
-		'order'       => 'ASC',
+		'orderby'     => array( 'menu_order' => 'ASC', 'date' => 'ASC' ), // 1.3.0: el orden que elige el emprendedor
 		'meta_query'  => array( array( 'key' => 'emprendimiento_correspondiente', 'value' => '"' . (int) $emp . '"', 'compare' => 'LIKE' ) ),
 	);
 	if ( ! current_user_can( 'manage_options' ) ) {
@@ -830,7 +829,7 @@ function cl_aloj_acciones_lista( $a ) {
 		$h .= wp_nonce_field( 'cl_aloj_' . $accion . '_' . $a, '_clnonce', false, false );
 		return $h . '<button type="submit" class="cla-acc-b' . ( 'borrar' === $accion ? ' cla-borrar' : '' ) . '"' . ( $confirma ? ' data-confirma="' . esc_attr( $confirma ) . '"' : '' ) . '>' . esc_html( $texto ) . '</button></form>';
 	};
-	$h = '';
+	$h = function_exists( 'cl_aloj_orden_botones' ) ? cl_aloj_orden_botones( $a ) : ''; // 1.3.0: ↑ ↓
 	if ( 'publish' === get_post_status( $a ) ) {
 		$h .= $btn( 'ocultar', 'Ocultar', '¿Seguro? Tocá de nuevo' );
 	}
@@ -960,6 +959,9 @@ add_shortcode( 'cl_panel_alojamientos', function () {
 	echo '<p class="cla-p">Cada alojamiento tiene su propia ficha y toma la ubicación, el mapa y el contacto de <strong>' . esc_html( get_the_title( $emp ) ) . '</strong>.</p>';
 
 	$ids = cl_aloj_de_emp( $emp );
+	if ( function_exists( 'cl_aloj_orden_ayuda' ) ) {
+		echo cl_aloj_orden_ayuda( $emp ); // phpcs:ignore
+	}
 	foreach ( $ids as $a ) {
 		$foto = get_the_post_thumbnail_url( $a, 'thumbnail' );
 		list( $oblig ) = cl_aloj_chequeo( $a );
@@ -970,7 +972,7 @@ add_shortcode( 'cl_panel_alojamientos', function () {
 			}
 		}
 		$nota = $faltan ? 'Falta: ' . implode( ', ', $faltan ) : ( 'publish' === get_post_status( $a ) || cl_aloj_oculto( $a ) ? '' : 'Listo para enviar' );
-		echo '<div class="cla-item"><a class="cla-card" href="' . esc_url( cl_aloj_url( $a, 'basico' ) ) . '">';
+		echo '<div class="cla-item" id="cla-' . (int) $a . '"><a class="cla-card" href="' . esc_url( cl_aloj_url( $a, 'basico' ) ) . '">';
 		echo '<div class="cla-foto"' . ( $foto ? ' style="background-image:url(' . esc_url( $foto ) . ')"' : '' ) . '>' . ( $foto ? '' : 'Sin foto' ) . '</div>';
 		echo '<div class="cla-info"><div class="cla-t">' . esc_html( get_the_title( $a ) ) . '</div>';
 		echo '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' . cl_aloj_chip_de( $a ) . ( $nota ? '<span class="cla-s">' . esc_html( $nota ) . '</span>' : '' ) . '</div></div>'; // phpcs:ignore
