@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.3.1 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.3.2 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,10 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.3.2
+* Directorio de la red: los emprendimientos sin página propia (solo sus alojamientos, como Gaia) llevan a su
+  primer alojamiento publicado. Función nueva cl_red_ficha_txt: «Ver alojamiento →» en esos casos y «Ver ficha →»
+  en el resto. En Bricks, el texto de prinf0 (página 28993 / 28899) pasa a {echo:cl_red_ficha_txt}.
 1.3.1
 * Directorio de la red: en el paso Contacto, la casilla única pasa a «¿Qué se muestra en el directorio de la red?»
   con Teléfono / WhatsApp (marcada por defecto) y Email (desmarcada por defecto; se muestra solo si el emprendedor
