@@ -373,8 +373,8 @@ function cl_panel_valor( $campo ) {
 			// 1.2.0: casillas «Se muestra en la web» (clcvis). Por defecto, todas marcadas.
 			return function_exists( 'cl_contacto_ocultos' ) ? implode( ',', array_diff( array_keys( cl_contacto_campos() ), cl_contacto_ocultos( $id ) ) ) : '';
 		case 'red_visible':
-			// 1.3.0: casilla «Mostrar mi contacto en el directorio de la red». Por defecto, marcada.
-			return ! function_exists( 'cl_red_visible' ) || cl_red_visible( $id ) ? 'Sí' : '';
+			// 1.3.1: casillas «¿Qué se muestra en el directorio de la red?». Por defecto, solo el teléfono.
+			return function_exists( 'cl_red_visibles' ) ? implode( ',', cl_red_visibles( $id ) ) : 'telefono';
 		case 'idiomas_lista':
 		case 'idiomas_otro':
 			$sep = cl_panel_idiomas_separar( get_field( 'idiomas', $id, false ) );
@@ -956,9 +956,9 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 		}
 	}
 
-	// 1.3.0: «Mostrar mi contacto en el directorio de la red» (casilla clcred + oculto clcrex).
+	// 1.3.1: «¿Qué se muestra en el directorio de la red?» (casillas clcred + oculto clcrex).
 	if ( 'contacto' === $paso && ! empty( $f['form-field-clcrex'] ) && function_exists( 'cl_red_guardar' ) ) {
-		if ( cl_red_guardar( $emp_id, ! empty( $f['form-field-clcred'] ) ) ) {
+		if ( cl_red_guardar( $emp_id, isset( $f['form-field-clcred'] ) ? (array) $f['form-field-clcred'] : array() ) ) {
 			$cambios[] = 'red_visible';
 		}
 	}

@@ -11,34 +11,48 @@
  *   cl_red_tel()      teléfono con formato · cl_red_wa() enlace de WhatsApp · cl_red_email() email
  *   cl_red_lugar()    «Aiguá · Región Este» · cl_red_rubros() «Alojamiento · Comida»
  *   cl_red_ficha()    dirección de la ficha (vacío si no tiene página pública)
- *   cl_red_oculto()   1 si la ficha eligió no mostrar su contacto a la red
+ *   cl_red_oculto()   1 si la ficha no muestra ningún dato de contacto a la red
  *   cl_red_filtro_rubros() botones de rubro (shortcode [cl_red_filtros])
  *
- * Permiso: en el paso Contacto, casilla «Mostrar mi contacto en el directorio de la red» (campo clcred + oculto
- * clcrex), marcada por defecto. Si se desmarca: meta _cl_red_oculto = 1; la ficha sigue en el directorio (nombre,
- * rubros, lugar) pero sin persona, teléfono, WhatsApp ni email.
+ * Qué se muestra (1.3.1): en el paso Contacto, casillas «¿Qué se muestra en el directorio de la red?» (campo clcred
+ * + oculto clcrex): Teléfono / WhatsApp (marcada por defecto) y Email (desmarcada por defecto). Se guarda en la
+ * meta _cl_red_visibles (lista: telefono, email); sin la meta vale «solo teléfono». Sin nada marcado, la ficha
+ * sigue en el directorio (nombre, persona, rubros, lugar) con el aviso «Prefiere que lo contacten por su ficha».
+ * La persona de contacto se muestra siempre (es solo un nombre). La meta _cl_red_oculto de la 1.3.0 se lee como
+ * «nada marcado».
  *
  * Filtros por la dirección: ?rubro=slug y ?q=texto (busca en el nombre y la localidad).
  */
 
 defined( 'ABSPATH' ) || exit;
 
-function cl_red_visible( $id ) {
-	return '1' !== (string) get_post_meta( (int) $id, '_cl_red_oculto', true );
+function cl_red_campos() {
+	return array( 'telefono' => 'Teléfono / WhatsApp', 'email' => 'Email' );
 }
 
-// Guarda la casilla del panel. Devuelve true si cambió.
-function cl_red_guardar( $id, $mostrar ) {
-	$antes = cl_red_visible( $id );
-	if ( $antes === (bool) $mostrar ) {
+// Datos que la ficha muestra en el directorio. Por defecto, solo el teléfono.
+function cl_red_visibles( $id ) {
+	$v = get_post_meta( (int) $id, '_cl_red_visibles', true );
+	if ( is_array( $v ) ) {
+		return array_values( array_intersect( array_keys( cl_red_campos() ), $v ) );
+	}
+	return '1' === (string) get_post_meta( (int) $id, '_cl_red_oculto', true ) ? array() : array( 'telefono' ); // 1.3.0
+}
+
+function cl_red_visible( $id, $campo = 'telefono' ) {
+	return in_array( $campo, cl_red_visibles( $id ), true );
+}
+
+// Guarda las casillas del panel ($visibles = lo marcado). Devuelve true si cambió.
+function cl_red_guardar( $id, $visibles ) {
+	$visibles = array_values( array_intersect( array_keys( cl_red_campos() ), array_map( 'sanitize_key', (array) $visibles ) ) );
+	$antes    = cl_red_visibles( $id );
+	delete_post_meta( $id, '_cl_red_oculto' );
+	if ( $visibles === $antes && is_array( get_post_meta( $id, '_cl_red_visibles', true ) ) ) {
 		return false;
 	}
-	if ( $mostrar ) {
-		delete_post_meta( $id, '_cl_red_oculto' );
-	} else {
-		update_post_meta( $id, '_cl_red_oculto', '1' );
-	}
-	return true;
+	update_post_meta( $id, '_cl_red_visibles', $visibles );
+	return $visibles !== $antes;
 }
 
 function cl_red_id( $id = 0 ) {
@@ -47,22 +61,20 @@ function cl_red_id( $id = 0 ) {
 
 // Contacto sin el filtro de la web pública, y solo si la ficha lo muestra a la red.
 function cl_red_dato( $id, $clave ) {
-	if ( ! cl_red_visible( $id ) || ! function_exists( 'cl_srv_es_red' ) || ! cl_srv_es_red() ) {
+	$campo = 'email-emp' === $clave ? 'email' : 'telefono';
+	if ( ! cl_red_visible( $id, $campo ) || ! function_exists( 'cl_srv_es_red' ) || ! cl_srv_es_red() ) {
 		return '';
 	}
 	return trim( (string) ( function_exists( 'cl_meta_crudo' ) ? cl_meta_crudo( $id, $clave ) : get_post_meta( $id, $clave, true ) ) );
 }
 
 function cl_red_oculto( $id = 0 ) {
-	return cl_red_visible( cl_red_id( $id ) ) ? '' : '1';
+	return cl_red_visibles( cl_red_id( $id ) ) ? '' : '1';
 }
 
 function cl_red_persona( $id = 0 ) {
 	$id = cl_red_id( $id );
-	if ( ! cl_red_visible( $id ) ) {
-		return '';
-	}
-	$p = trim( (string) get_post_meta( $id, 'persona_contacto', true ) );
+	$p  = trim( (string) get_post_meta( $id, 'persona_contacto', true ) );
 	if ( '' === $p ) {
 		$sol = get_post_meta( $id, '_cl_solicitud', true );
 		$p   = is_array( $sol ) && ! empty( $sol['persona'] ) ? trim( (string) $sol['persona'] ) : '';
