@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.3.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.3.4 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,9 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.3.4
+* «Si hay traslado: ¿cómo es?» (traslado_nota) acepta hasta 260 caracteres (antes 200), pedido de Cabañas Don Cleto.
+  En Bricks, el campo clntra (clnivf de 28613) pasa a texto largo con maxLength 260.
 1.3.3
 * «Especial para» de una sola opción: en el panel, «¿Para quién está pensado especialmente?» con Para todos
   (por defecto, guarda sin término) · Parejas · Familias · Grupos. cl_aloj_valor('especial') y
