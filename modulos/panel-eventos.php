@@ -431,6 +431,9 @@ function cl_ev_en_otro_lugar( $id ) {
 // {echo:cl_ev_valor('campo')} — valor actual para precargar el formulario.
 function cl_ev_valor( $campo ) {
 	$id = cl_ev_id();
+	if ( 'especial' === $campo && function_exists( 'cl_especial_valor_form' ) ) {
+		return cl_especial_valor_form( $id ); // 1.3.3: una sola opción, «Para todos» también en las nuevas
+	}
 	if ( ! $id ) {
 		return '';
 	}

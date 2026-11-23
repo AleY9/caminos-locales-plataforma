@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.3.2 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.3.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,14 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.3.3
+* «Especial para» de una sola opción: en el panel, «¿Para quién está pensado especialmente?» con Para todos
+  (por defecto, guarda sin término) · Parejas · Familias · Grupos. cl_aloj_valor('especial') y
+  cl_ev_valor('especial') dan el slug o «todos» (también en fichas nuevas). Una sola vez (opción
+  clp_especial_133): las fichas con más de una marca pasan a «Para todos». En Bricks, los campos clespe
+  (k7bn7x de 28320) y clevep (wvwtpg de 28334) pasan a botones de opción con «todos:Para todos».
+* Temas que te identifican: ayuda «Elegí los que más te identifican, hasta 5…» y, con más de 5, un aviso que
+  no bloquea.
 1.3.2
 * Directorio de la red: los emprendimientos sin página propia (solo sus alojamientos, como Gaia) llevan a su
   primer alojamiento publicado. Función nueva cl_red_ficha_txt: «Ver alojamiento →» en esos casos y «Ver ficha →»

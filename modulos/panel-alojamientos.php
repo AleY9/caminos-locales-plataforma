@@ -178,6 +178,9 @@ function cl_aloj_leer( $campo, $id ) {
 // {echo:cl_aloj_valor('campo')} — valor actual del alojamiento que se edita (texto plano).
 function cl_aloj_valor( $campo ) {
 	$id = cl_aloj_id();
+	if ( 'especial' === $campo && function_exists( 'cl_especial_valor_form' ) ) {
+		return cl_especial_valor_form( $id ); // 1.3.3: una sola opción, «Para todos» también en los nuevos
+	}
 	if ( ! $id ) {
 		return '';
 	}
