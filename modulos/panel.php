@@ -245,7 +245,7 @@ add_action( 'wp_footer', function () {
 	window.addEventListener('beforeunload', function(e){ if (sucio && !enviando) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>
-<style>.clp-rdesc{display:block;font-size:14px;color:#5b6a68;line-height:1.35;margin-top:2px}.clp-mas{border:1px solid #e0dacd;border-radius:12px;background:#fbfaf6;padding:0 14px;margin-bottom:20px}.clp-mas>summary{min-height:48px;display:flex;align-items:center;font-weight:700;color:#1f4645;cursor:pointer}.clp-mas-tit{display:none}.clp-mas[open]>summary .clp-mas-ab,.clp-mas:not([open])>summary .clp-mas-ce{display:none}.clp-mas-menos{display:block;margin:4px 0 14px;padding:0;border:0;background:none;color:#9a6055;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}.brxe-form legend,.brxe-form .form-group>.label{text-transform:none!important;letter-spacing:0!important;font-weight:700;font-size:16px;color:#23302f;margin-bottom:6px}</style>
+<style>.clp-rdesc{display:block;font-size:14px;color:#5b6a68;line-height:1.35;margin-top:2px}.clp-mas{border:1px solid #e0dacd;border-radius:12px;background:#fbfaf6;padding:0 14px;margin-bottom:20px}.clp-mas>summary{min-height:48px;display:flex;align-items:center;font-weight:700;color:#1f4645;cursor:pointer}.clp-mas-tit{display:none}.clp-mas[open]>summary .clp-mas-ab,.clp-mas:not([open])>summary .clp-mas-ce{display:none}.clp-mas-ayu{font-size:14px;line-height:1.45;color:#5b6a68;margin:0 0 10px}.clp-mas-aviso{background:#fdf0d5;color:#5c3a00;border-radius:10px;padding:8px 12px;font-size:14px;line-height:1.4;margin:4px 0 8px}.clp-mas-menos{display:block;margin:4px 0 14px;padding:0;border:0;background:none;color:#9a6055;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}.brxe-form legend,.brxe-form .form-group>.label{text-transform:none!important;letter-spacing:0!important;font-weight:700;font-size:16px;color:#23302f;margin-bottom:6px}</style>
 <script>
 (function(){
 	// Paso «Qué ofrecés»: el rubro decide qué preguntas se ven.
@@ -278,7 +278,13 @@ add_action( 'wp_footer', function () {
 		var det = document.createElement('details'); det.className = 'clp-mas';
 		var sum = document.createElement('summary');
 		sum.innerHTML = '<span class="clp-mas-ab">Ver temas que te identifican (opcional) <span class="clp-mas-n"></span> ▾</span><span class="clp-mas-ce">Temas que te identifican ▴</span>';
-		det.appendChild(sum); gt.parentNode.insertBefore(det, gt); det.appendChild(gt);
+		det.appendChild(sum); gt.parentNode.insertBefore(det, gt);
+		// 1.3.3: hasta 5, con un aviso que no bloquea.
+		var ayu = document.createElement('p'); ayu.className = 'clp-mas-ayu';
+		ayu.textContent = 'Elegí los que más te identifican, hasta 5. Pensalos en sentido amplio: una comida que cuenta el cuidado del monte también es educación ambiental.';
+		det.appendChild(ayu); det.appendChild(gt);
+		var aviso = document.createElement('p'); aviso.className = 'clp-mas-aviso'; aviso.setAttribute('role', 'status');
+		det.appendChild(aviso);
 		// El título propio del grupo se repetía: se oculta.
 		[].forEach.call(gt.children, function(el){ if (/^(LABEL|LEGEND)$/.test(el.tagName) || el.classList.contains('label')) { el.classList.add('clp-mas-tit'); } });
 		var fs = gt.querySelector('legend'); if (fs) { fs.classList.add('clp-mas-tit'); }
@@ -288,6 +294,8 @@ add_action( 'wp_footer', function () {
 		function contar(){
 			var n = gt.querySelectorAll('input:checked').length;
 			det.querySelector('.clp-mas-n').textContent = n ? '· ' + n + (n > 1 ? ' elegidos' : ' elegido') : '';
+			aviso.textContent = n > 5 ? 'Elegiste ' + n + '. Te sugerimos dejar los 5 que más te identifican: así tu ficha se entiende mejor.' : '';
+			aviso.style.display = n > 5 ? '' : 'none';
 		}
 		gt.addEventListener('change', contar); contar();
 	}

@@ -9,6 +9,12 @@
  * - Filtros de Bricks: Filtro radio/casillas con fuente Taxonomía → «Especial para».
  * - La característica de alojamiento «Ideal para parejas» pasa a «Especial para: Parejas» una sola vez
  *   (opción clp_especial_1111) y el panel deja de ofrecerla en «Qué tiene».
+ *
+ * Una sola opción (1.3.3): en el panel la pregunta es «¿Para quién está pensado especialmente?» con botones
+ * de opción «todos:Para todos · parejas:Parejas · familias:Familias · grupos:Grupos». «Para todos» (por defecto)
+ * guarda la ficha sin término. cl_especial_valor_form() da el valor del formulario: el slug o «todos».
+ * Una sola vez (opción clp_especial_133): las fichas con más de una marca quedan en «Para todos» (marcar
+ * varias quería decir «sirve para todos»).
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -83,6 +89,27 @@ function cl_especial_limpiar( $valor ) {
 	$lista = array_map( 'sanitize_key', array_map( 'wp_unslash', array_map( 'strval', $lista ) ) );
 	return array_values( array_intersect( array_keys( cl_especial_opciones() ), $lista ) );
 }
+
+// Valor para el formulario de una sola opción: el slug marcado o «todos» (1.3.3).
+function cl_especial_valor_form( $id ) {
+	$s = $id ? cl_especial_leer( $id ) : array();
+	return 1 === count( $s ) ? $s[0] : 'todos';
+}
+
+// Una sola vez: las fichas con más de una marca pasan a «Para todos» (1.3.3).
+add_action( 'init', function () {
+	if ( get_option( 'clp_especial_133' ) ) {
+		return;
+	}
+	$pasadas = array();
+	foreach ( get_posts( array( 'post_type' => array( 'alojamiento', 'evento' ), 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'tax_query' => array( array( 'taxonomy' => 'especial', 'operator' => 'EXISTS' ) ) ) ) as $id ) {
+		if ( count( cl_especial_leer( $id ) ) > 1 ) {
+			wp_set_object_terms( (int) $id, array(), 'especial', false );
+			$pasadas[] = (int) $id;
+		}
+	}
+	update_option( 'clp_especial_133', array( 'fecha' => current_time( 'mysql' ), 'fichas' => $pasadas ), false );
+}, 25 );
 
 function cl_especial_guardar( $id, $slugs ) {
 	wp_set_object_terms( (int) $id, cl_especial_limpiar( $slugs ), 'especial', false );
