@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.3.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.4.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,26 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.4.0
+* Fichas simples (includes/fichas-simples.php): el panel arma el recorrido según el tipo de ficha, que sale de
+  «Qué ofrecés»: servicio (ficha compacta), solo alojamiento («No, solo mis alojamientos») o completa.
+  cl_pi('tipo') da servicio · solo_alojamiento · completa, y cl_pi('pasos_total') 4 o 6.
+* Servicio y solo alojamiento: pasos Qué ofrecés · Presentación · Ubicación · Contacto · Ver cómo queda (Fotos y
+  Otros datos redirigen a Presentación). Para publicar alcanza con nombre, qué ofrece, región y localidad y un
+  contacto; sin «perfil en construcción».
+* Servicio: foto o logo e idiomas en Presentación; una sola descripción (la breve se arma sola con la primera
+  oración, meta _cl_breve_auto, mientras no haya una propia); «Nombre (tuyo o de tu servicio)»; en Ubicación,
+  primero la zona de trabajo y el mapa plegado en «¿Atendés en un lugar fijo?»; en Contacto, «¿Dónde aparece tu
+  servicio?» primero. El progreso de Mi panel ya no pide el mapa ni la breve.
+* Solo alojamiento: Presentación pide solo el nombre; «Ver cómo queda» explica que se ven sus alojamientos y
+  lleva a «Mis alojamientos».
+* Contacto (todos): «Qué datos se muestran en la web» plegado (por defecto se muestra todo).
+* Servicios locales y Servicios para contratar: orden aleatorio que cambia una vez por día, como el resto.
+* «Ver la ficha completa ↗» → «Ver tu ficha ↗».
+* En Bricks (página 28262): campos clidio y clidot en el formulario 2ikuem; Shortcode [cl_panel_fotos] en
+  Presentación para el servicio; condición tipo == completa en clpas5, clpas6; «Paso N de
+  {echo:cl_pi('pasos_total')}»; textos de introducción por tipo; «Siguiente» de Contacto según el tipo.
+  Mi panel (22812): «Mi inscripción» (pnins0) no se muestra en las fichas de servicio.
 1.3.3
 * «Especial para» de una sola opción: en el panel, «¿Para quién está pensado especialmente?» con Para todos
   (por defecto, guarda sin término) · Parejas · Familias · Grupos. cl_aloj_valor('especial') y

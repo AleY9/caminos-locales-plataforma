@@ -328,8 +328,9 @@ add_filter( 'bricks/posts/query_vars', function ( $qv, $settings, $element_id ) 
 
 	$qv['post_type']   = 'emprendimientos';
 	$qv['post_status'] = 'publish';
-	$qv['orderby']     = 'title';
-	$qv['order']       = 'ASC';
+	// 1.4.0: orden aleatorio que cambia una vez por día, como el resto de los listados («el orden nunca se vende»).
+	$qv['orderby']     = function_exists( 'cl_orden_semilla' ) ? 'RAND(' . cl_orden_semilla() . ')' : 'title';
+	unset( $qv['order'] );
 	$qv['meta_query']  = array(
 		array( 'key' => $servicios ? '_cl_servicio_pub' : '_cl_en_servicios', 'value' => '1' ),
 	);
@@ -513,19 +514,14 @@ add_action( 'wp_footer', function () {
 	ver('clavis', REV);
 	// Ficha compacta: sin «Quiénes somos», video ni los datos de visita; descripción corta.
 	if (CO) {
-		['clhqui','clquie','clvide','clhvis','clvisi','clhrec','clreco','clhpar','cltpar','clpart','clhred','cltred','clred','clhcon'].forEach(function(id){ ver(id, false); });
+		// 1.4.0: los campos de «Otros datos» ya no hacen falta (ese paso no está en la ficha compacta); clhred
+		// también es el título del directorio en Contacto y no se tiene que ocultar.
+		['clhqui','clquie','clvide'].forEach(function(id){ ver(id, false); });
 		var hd = g('clhdes');
 		if (hd) {
-			hd.innerHTML = '<p style="font-size:15px;line-height:1.5;color:#3d4b49;background:#fbfaf6;border:1px solid #e0dacd;border-radius:12px;padding:10px 14px;margin:0">Con la ficha compacta alcanza con <strong>dos o tres oraciones</strong>: qué hacés, dónde y cómo trabajás. Ej.: <em>«Hago viandas y picnics con verduras de la huerta. Entrego en Aiguá y Villa Serrana con un día de aviso.»</em></p>';
+			hd.innerHTML = '<p style="font-size:15px;line-height:1.5;color:#3d4b49;background:#fbfaf6;border:1px solid #e0dacd;border-radius:12px;padding:10px 14px;margin:0">Alcanza con <strong>dos o tres oraciones</strong>: qué hacés, dónde y cómo trabajás. La primera es la que se ve en tu tarjeta. Ej.: <em>«Hago viandas y picnics con verduras de la huerta. Entrego en Aiguá y Villa Serrana con un día de aviso.»</em></p>';
 		}
-		// Ubicación: dirección y mapa solo si atiende en un lugar fijo.
-		var hm = g('clhmap');
-		if (hm) {
-			var box = document.createElement('div');
-			box.style.cssText = 'font-size:15px;line-height:1.5;color:#3d4b49;margin:8px 0 0;padding-top:14px;border-top:1px solid #e0dacd';
-			box.innerHTML = '<p style="font-size:17px;font-weight:700;color:#1f4645;margin:0">¿Atendés en un lugar fijo? <span style="font-weight:400;color:#5b6a68;font-size:15px">(opcional)</span></p><p style="margin:4px 0 0">Si tenés local, puesto o taller, poné la dirección y el mapa: se ven en tu ficha con el botón «Cómo llegar». Si trabajás a domicilio, dejalo vacío.</p>';
-			hm.parentNode.insertBefore(box, hm);
-		}
+		// Ubicación: el lugar fijo (mapa y dirección) se pliega en includes/fichas-simples.php (1.4.0).
 		var ldi = document.querySelector('form.brxe-form [name="form-field-cldire"]');
 		ldi = ldi && ldi.closest('.form-group'); ldi = ldi && ldi.querySelector('label');
 		if (ldi) { ldi.firstChild.textContent = 'Dirección del local, puesto o taller'; }
