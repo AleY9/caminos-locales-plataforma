@@ -1561,7 +1561,13 @@ add_shortcode( 'cl_panel_vista', function () {
 	<div>
 		<div style="font-size:14px;font-weight:700;color:#5b6a68;margin-bottom:8px">Así se ve tu tarjeta en el listado</div>
 		<div class="clv-card">
-			<div class="clv-foto"<?php echo $foto ? ' style="background-image:url(' . esc_url( $foto ) . ')"' : ''; ?>><?php echo $foto ? '' : 'Sin foto principal'; ?></div>
+			<div class="clv-foto"<?php echo $foto ? ' style="background-image:url(' . esc_url( $foto ) . ')"' : ''; ?>><?php
+				if ( ! $foto ) {
+					// 1.4.0: el servicio sin foto se ve en la web con el ícono de su rubro.
+					$ico = 'servicio' === $tipo && function_exists( 'cl_srv_icono_ficha' ) ? cl_srv_icono_ficha( $id ) : '';
+					echo $ico ? $ico : 'Sin foto principal'; // phpcs:ignore WordPress.Security.EscapeOutput
+				}
+				?></div>
 			<div class="clv-body">
 				<?php if ( $lugar ) : ?><div class="clv-lugar"><?php echo esc_html( $lugar ); ?></div><?php endif; ?>
 				<h2 class="clv-tit"><?php echo esc_html( get_the_title( $id ) ); ?></h2>
