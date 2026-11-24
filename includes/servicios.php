@@ -614,9 +614,10 @@ add_action( 'wp_footer', function () {
 	var pop = document.querySelector('.brx-popup[data-popup-id="' + POP + '"]');
 	if (pop && window.MutationObserver) {
 		new MutationObserver(function(){
-			var l = pop.querySelector('.cl-srv-ventana .bricks-lightbox:not([data-cl-pswp])');
-			if (!l || !window.bricksPhotoswipeFn || typeof bricksPhotoswipeFn.run !== 'function') { return; }
-			l.setAttribute('data-cl-pswp', '1');
+			// 1.4.0: puede haber más de una (imagen extra y fotos del trabajo): se marcan todas y se arma una vez.
+			var ls = pop.querySelectorAll('.cl-srv-ventana .bricks-lightbox:not([data-cl-pswp])');
+			if (!ls.length || !window.bricksPhotoswipeFn || typeof bricksPhotoswipeFn.run !== 'function') { return; }
+			[].forEach.call(ls, function(l){ l.setAttribute('data-cl-pswp', '1'); });
 			bricksPhotoswipeFn.run();
 		}).observe(pop, { childList: true, subtree: true });
 	}
