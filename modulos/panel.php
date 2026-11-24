@@ -586,7 +586,7 @@ function cl_panel_campos_permitidos() {
 		'seguro_vencimiento'            => array( 'tipo' => 'fecha' ),
 		// Cómo es llegar y estar (nivel 2, solo quien recibe visitantes)
 		'llegada'                       => array( 'tipo' => 'opciones', 'opciones' => array( 'En auto hasta el lugar', 'Punto de encuentro con traslado', 'Punto de encuentro y se sigue a pie' ) ),
-		'traslado_nota'                 => array( 'tipo' => 'texto', 'max' => 200 ),
+		'traslado_nota'                 => array( 'tipo' => 'texto', 'max' => 260 ), // 1.4.0 (era el PR #27, 1.3.4): antes 200
 		'como_llegar'                   => array( 'tipo' => 'textarea', 'max' => 500 ),
 		'porteras'                      => array( 'tipo' => 'sino' ),
 		'bano_tipo'                     => array( 'tipo' => 'opcion', 'opciones' => array( 'Hay baño', 'Sin baño' ) ),
@@ -604,6 +604,7 @@ function cl_panel_pasos() {
 			'cldesc' => 'contenido',
 			'clquie' => 'quienes_somos',
 			'clvide' => 'url_video_emprendimiento',
+			'clidio' => 'idiomas', // 1.4.0: en la ficha de servicio, los idiomas van en Presentación
 		),
 		'actividades'  => array(
 			'clrubr' => 'rubros',
@@ -856,7 +857,7 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	}
 
 	// Idiomas: casillas + texto libre → un solo valor.
-	if ( 'otros' === $paso && ( isset( $f['form-field-clidio'] ) || isset( $f['form-field-clidot'] ) ) ) {
+	if ( in_array( $paso, array( 'otros', 'presentacion' ), true ) && ( isset( $f['form-field-clidio'] ) || isset( $f['form-field-clidot'] ) ) ) {
 		$f['form-field-clidio'] = cl_panel_idiomas_juntar(
 			isset( $f['form-field-clidio'] ) ? $f['form-field-clidio'] : array(),
 			isset( $f['form-field-clidot'] ) ? $f['form-field-clidot'] : ''
@@ -888,6 +889,13 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	$es_admin = current_user_can( 'manage_options' );
 	if ( ! $es_admin && (int) get_post_field( 'post_author', $emp_id ) !== get_current_user_id() ) {
 		return $error( 'No tenés permiso para editar esta ficha.' );
+	}
+
+	// 1.4.0: la breve descripción es obligatoria solo en la ficha completa (en Bricks ya no lleva «obligatorio»,
+	// porque en las fichas simples el campo no se muestra).
+	if ( 'presentacion' === $paso && array_key_exists( 'form-field-clbrev', $f ) && '' === trim( (string) $f['form-field-clbrev'] )
+		&& ( ! function_exists( 'cl_panel_tipo' ) || 'completa' === cl_panel_tipo( $emp_id ) ) ) {
+		return $error( 'Escribí la breve descripción.' );
 	}
 
 	// Con Actividades y experiencias, hace falta al menos una Forma de andar.
@@ -1109,8 +1117,9 @@ function cl_panel_progreso( $id ) {
 		unset( $chk['cómo llegar'] );
 	}
 	// Ficha compacta (1.1.0): sin «Quiénes somos»; la foto puede ser el logo.
+	// 1.4.0: sin la breve (se arma sola) ni el mapa (quien trabaja a domicilio no tiene).
 	if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $id ) ) {
-		unset( $chk['quiénes somos'] );
+		unset( $chk['quiénes somos'], $chk['breve descripción'], $chk['mapa'] );
 		$chk = array( 'foto o logo' => $chk['foto principal'] ? $chk['foto principal'] : get_post_meta( $id, 'imagen_extra', true ) ) + $chk;
 		unset( $chk['foto principal'] );
 	}
@@ -1286,6 +1295,20 @@ function cl_panel_revision_chequeo( $id ) {
 	// 1.1.6: la ficha compacta puede publicarse con la foto principal o con la imagen extra.
 	if ( function_exists( 'cl_es_servicio' ) && cl_es_servicio( $id ) ) {
 		$oblig[ count( $oblig ) - 1 ] = array( 'Foto o imagen extra', get_post_thumbnail_id( $id ) || (int) get_post_meta( $id, 'imagen_extra', true ), 'fotos' );
+	}
+	// 1.4.0: fichas simples. Para publicar alcanza con nombre, qué ofrece, región y localidad y un contacto.
+	$tipo = function_exists( 'cl_panel_tipo' ) ? cl_panel_tipo( $id ) : 'completa';
+	if ( 'completa' !== $tipo ) {
+		$oblig = array( $oblig[0], $oblig[3], $oblig[4], $oblig[5] );
+		if ( 'servicio' === $tipo ) {
+			$suger = array(
+				array( 'Descripción de tu servicio', '' !== trim( wp_strip_all_tags( get_post_field( 'post_content', $id ) ) ), 'presentacion' ),
+				array( 'Foto o logo', get_post_thumbnail_id( $id ) || (int) get_post_meta( $id, 'imagen_extra', true ), 'presentacion' ),
+			);
+		} else {
+			$suger = array( array( 'Mapa', '' !== trim( (string) get_field( 'ubicacion', $id, false ) ), 'ubicacion' ), array( 'Cómo llegar', '' !== trim( (string) get_field( 'como_llegar', $id, false ) ), 'lugar' ) );
+		}
+		return array( $oblig, $suger );
 	}
 	if ( $con_act ) {
 		array_splice( $oblig, 4, 0, array( array( '¿Qué se puede hacer en tu lugar?', ! empty( $cats ), 'actividades' ) ) );
@@ -1471,6 +1494,7 @@ add_shortcode( 'cl_panel_vista', function () {
 		}
 		return home_url( '/panel/emprendimiento/?paso=' . $paso . $qs );
 	};
+	$tipo = function_exists( 'cl_panel_tipo' ) ? cl_panel_tipo( $id ) : 'completa'; // 1.4.0
 	list( $oblig, $suger ) = cl_panel_revision_chequeo( $id );
 	$faltan_oblig = array_filter( $oblig, function ( $o ) {
 		return ! $o[1];
@@ -1530,10 +1554,20 @@ add_shortcode( 'cl_panel_vista', function () {
 		<div class="clv-msg clv-err">Todavía falta completar lo marcado con ✕.</div>
 	<?php endif; ?>
 
+	<?php if ( 'solo_alojamiento' === $tipo ) : ?>
+	<div class="clv-msg clv-info"><strong>Tu lugar no tiene página propia.</strong><br>En la web se ven tus alojamientos, con el nombre, la ubicación y el contacto que cargás acá.</div>
+	<a class="clv-link" href="<?php echo esc_url( function_exists( 'cl_aloj_url_lista' ) ? cl_aloj_url_lista( $id ) : home_url( '/panel/alojamientos/' ) ); ?>">Ir a mis alojamientos →</a>
+	<?php else : ?>
 	<div>
 		<div style="font-size:14px;font-weight:700;color:#5b6a68;margin-bottom:8px">Así se ve tu tarjeta en el listado</div>
 		<div class="clv-card">
-			<div class="clv-foto"<?php echo $foto ? ' style="background-image:url(' . esc_url( $foto ) . ')"' : ''; ?>><?php echo $foto ? '' : 'Sin foto principal'; ?></div>
+			<div class="clv-foto"<?php echo $foto ? ' style="background-image:url(' . esc_url( $foto ) . ')"' : ''; ?>><?php
+				if ( ! $foto ) {
+					// 1.4.0: el servicio sin foto se ve en la web con el ícono de su rubro.
+					$ico = 'servicio' === $tipo && function_exists( 'cl_srv_icono_ficha' ) ? cl_srv_icono_ficha( $id ) : '';
+					echo $ico ? $ico : 'Sin foto principal'; // phpcs:ignore WordPress.Security.EscapeOutput
+				}
+				?></div>
 			<div class="clv-body">
 				<?php if ( $lugar ) : ?><div class="clv-lugar"><?php echo esc_html( $lugar ); ?></div><?php endif; ?>
 				<h2 class="clv-tit"><?php echo esc_html( get_the_title( $id ) ); ?></h2>
@@ -1544,7 +1578,8 @@ add_shortcode( 'cl_panel_vista', function () {
 			</div>
 		</div>
 	</div>
-	<a class="clv-link" href="<?php echo esc_url( cl_panel_url_vista( $id ) ); ?>" target="_blank" rel="noopener">Ver la ficha completa ↗</a>
+	<a class="clv-link" href="<?php echo esc_url( cl_panel_url_vista( $id ) ); ?>" target="_blank" rel="noopener">Ver tu ficha ↗</a>
+	<?php endif; ?>
 
 	<div class="clv-box">
 		<h3 class="clv-h">Antes de publicar</h3>
@@ -1575,7 +1610,7 @@ add_shortcode( 'cl_panel_vista', function () {
 			<?php wp_nonce_field( 'cl_enviar_' . $id, '_clnonce', false ); ?>
 			<button type="submit" class="clv-btn"<?php echo $faltan_oblig ? ' disabled' : ''; ?>><?php echo cl_sin_revision() ? 'Publicar' : 'Enviar a revisión'; ?></button>
 		</form>
-		<?php if ( $faltan_oblig && $minima ) : ?>
+		<?php if ( $faltan_oblig && $minima && 'completa' === $tipo ) : // 1.4.0: en las fichas simples lo obligatorio ya es lo mínimo ?>
 			<div class="clv-box">
 				<h3 class="clv-h">¿Querés aparecer ya?</h3>
 				<?php if ( ! $falta_min ) : ?>
@@ -1699,6 +1734,10 @@ function cl_pi( $dato ) {
 			return cl_sin_revision() ? 'Publicar' : 'Enviar a revisión';
 		case 'recibe':
 			return cl_panel_recibe_visitantes( $id ) ? '1' : '';
+		case 'tipo': // 1.4.0: servicio · solo_alojamiento · completa
+			return function_exists( 'cl_panel_tipo' ) ? cl_panel_tipo( $id ) : 'completa';
+		case 'pasos_total':
+			return (string) ( function_exists( 'cl_panel_pasos_de' ) ? count( cl_panel_pasos_de( $id ) ) : 6 );
 		case 'url_emp':
 			return esc_url( $base . 'emprendimiento/' . $qs );
 		case 'url_lugar':

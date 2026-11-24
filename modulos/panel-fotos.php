@@ -317,7 +317,12 @@ add_shortcode( 'cl_panel_fotos', function () {
 			<?php echo $tarjeta( 'principal', 'Foto o logo', 'La que aparece en tu tarjeta de «Servicios locales»: vos trabajando, lo que hacés o tu logo.', true ); // phpcs:ignore ?>
 			<?php echo $tarjeta( 'extra', 'Imagen extra (opcional)', 'Un afiche o una foto vertical (4:5) que se ve al abrir tu ficha. Si tiene fecha, acordate de sacarlo cuando pase.' ); // phpcs:ignore ?>
 		</div>
-		<p class="clf-p">Con la ficha compacta alcanza con una imagen. Si querés mostrar más fotos, elegí la ficha completa en «Qué ofrecés».</p>
+	</div>
+	<?php // 1.4.0: hasta 4 fotos de su trabajo, sin pasar a la ficha completa (usa foto1–foto4 de fotos_actividades). ?>
+	<div class="clf-sec">
+		<h2 class="clf-h">Fotos de tu trabajo <span style="font-weight:400;font-size:15px;color:#5b6a68">(opcional)</span></h2>
+		<p class="clf-p">Hasta 4: lo que hacés, tus trabajos terminados, tu vehículo o tu puesto. Se ven al abrir tu ficha.</p>
+		<?php echo $grilla( 'act', 4, 'Foto' ); // phpcs:ignore ?>
 	</div>
 </div>
 	<?php else : ?>
