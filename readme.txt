@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.4.0 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.4.1 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,11 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.4.1
+* Una sola vez, al entrar un administrador a wp-admin (opción clp_srv_ids_141): la plantilla «Single Servicio» pasa sus IDs de elementos de 5 y 7 letras a 6
+  (sscab→sscab0, sstx→sstx00, ssizq→ssizq0…), los mismos que ya tiene el staging. Respaldo del árbol anterior en la
+  meta _clp_respaldo_ids_141. Con IDs inválidos, Bricks no dejaba editar la plantilla por MCP. Después, en Bricks:
+  condición {echo:cl_srv_breve_auto} vacío en ssbrev y galería ssgal1 ({cl_fotos:fotos_actividades}) en ssizq0.
 1.4.0
 * Fichas simples (includes/fichas-simples.php): el panel arma el recorrido según el tipo de ficha, que sale de
   «Qué ofrecés»: servicio (ficha compacta), solo alojamiento («No, solo mis alojamientos») o completa.
