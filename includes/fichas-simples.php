@@ -132,7 +132,13 @@ add_action( 'wp_footer', function () {
 	var form = [].filter.call(document.querySelectorAll('form.brxe-form'), function(x){ return x.querySelector('[name="form-field-clpaso"]'); })[0];
 	if (!form) { return; }
 	var paso = (form.querySelector('[name="form-field-clpaso"]') || {}).value;
-	function g(id){ var el = form.querySelector('[name="form-field-' + id + '"], [name="form-field-' + id + '[]"], [data-cl="' + id + '"]'); return el && el.closest('.form-group'); }
+	// Los campos HTML de Bricks no llevan nombre: los que no tienen data-cl se buscan por su texto.
+	var TXT = { clhmap: 'Cómo copiar el mapa', clhmai: 'A este email llegan' };
+	function g(id){
+		var el = form.querySelector('[name="form-field-' + id + '"], [name="form-field-' + id + '[]"], [data-cl="' + id + '"]');
+		if (!el && TXT[id]) { el = [].filter.call(form.querySelectorAll('.form-group'), function(x){ return x.textContent.indexOf(TXT[id]) > -1 && !x.querySelector('input:not([type=hidden]),textarea,select'); })[0]; return el || null; }
+		return el && el.closest('.form-group');
+	}
 	function ocultar(id){ var x = g(id); if (x) { x.style.display = 'none'; [].forEach.call(x.querySelectorAll('[required]'), function(i){ i.required = false; }); } }
 	function etiqueta(id, txt){ var x = g(id), l = x && x.querySelector('label'); if (l) { l.firstChild.textContent = txt; } }
 	// Mete en un desplegable los grupos de la lista, en su orden.
@@ -185,9 +191,8 @@ add_action( 'wp_footer', function () {
 		plegar(['clcvis', 'clhcvi'], 'Qué datos se muestran en la web', '(todos, salvo que desmarques)', '', false);
 		if (T !== 'completa') {
 			// Email: la ficha simple no tiene formulario de consultas.
-			[].forEach.call(form.querySelectorAll('.form-group > p'), function(p){
-				if (p.textContent.indexOf('A este email llegan') === 0) { p.textContent = 'Si tu ficha ya está publicada, un cambio de email lo revisa Caminos Locales antes.'; }
-			});
+			var hm = g('clhmai'), p = hm && hm.querySelector('p');
+			if (p) { p.textContent = 'Si tu ficha ya está publicada, un cambio de email lo revisa Caminos Locales antes.'; }
 		}
 		if (T === 'servicio') {
 			// «¿Dónde aparece tu servicio?» arriba: es lo primero que decide un prestador.
