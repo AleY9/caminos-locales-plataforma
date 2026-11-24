@@ -586,7 +586,7 @@ function cl_panel_campos_permitidos() {
 		'seguro_vencimiento'            => array( 'tipo' => 'fecha' ),
 		// Cómo es llegar y estar (nivel 2, solo quien recibe visitantes)
 		'llegada'                       => array( 'tipo' => 'opciones', 'opciones' => array( 'En auto hasta el lugar', 'Punto de encuentro con traslado', 'Punto de encuentro y se sigue a pie' ) ),
-		'traslado_nota'                 => array( 'tipo' => 'texto', 'max' => 200 ),
+		'traslado_nota'                 => array( 'tipo' => 'texto', 'max' => 260 ), // 1.4.0 (era el PR #27, 1.3.4): antes 200
 		'como_llegar'                   => array( 'tipo' => 'textarea', 'max' => 500 ),
 		'porteras'                      => array( 'tipo' => 'sino' ),
 		'bano_tipo'                     => array( 'tipo' => 'opcion', 'opciones' => array( 'Hay baño', 'Sin baño' ) ),

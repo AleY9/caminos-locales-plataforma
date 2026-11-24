@@ -63,6 +63,8 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
 * Contacto (todos): «Qué datos se muestran en la web» plegado (por defecto se muestra todo).
 * Servicios locales y Servicios para contratar: orden aleatorio que cambia una vez por día, como el resto.
 * «Ver la ficha completa ↗» → «Ver tu ficha ↗».
+* «Si hay traslado: ¿cómo es?» (traslado_nota) acepta hasta 260 caracteres (antes 200), pedido de Cabañas Don Cleto
+  (era el PR #27). En Bricks, el campo clntra (clnivf de 28613) pasa a texto largo con maxLength 260.
 * En Bricks (página 28262): campos clidio y clidot en el formulario 2ikuem; Shortcode [cl_panel_fotos] en
   Presentación para el servicio; clbrev sin «obligatorio» (lo exige el código en la completa); condición
   tipo == completa en clpas5, clpas6; «Paso N de
