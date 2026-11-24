@@ -44,7 +44,7 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
 
 == Cambios ==
 1.4.1
-* Una sola vez (opción clp_srv_ids_141): la plantilla «Single Servicio» pasa sus IDs de elementos de 5 y 7 letras a 6
+* Una sola vez, al entrar un administrador a wp-admin (opción clp_srv_ids_141): la plantilla «Single Servicio» pasa sus IDs de elementos de 5 y 7 letras a 6
   (sscab→sscab0, sstx→sstx00, ssizq→ssizq0…), los mismos que ya tiene el staging. Respaldo del árbol anterior en la
   meta _clp_respaldo_ids_141. Con IDs inválidos, Bricks no dejaba editar la plantilla por MCP. Después, en Bricks:
   condición {echo:cl_srv_breve_auto} vacío en ssbrev y galería ssgal1 ({cl_fotos:fotos_actividades}) en ssizq0.

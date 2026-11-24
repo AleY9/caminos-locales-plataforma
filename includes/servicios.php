@@ -456,8 +456,10 @@ function cl_srv_plantilla_id() {
 // 1.4.1: la plantilla «Single Servicio» tenía IDs de elementos de 5 y 7 letras (Bricks pide 6) y por eso no se
 // podía editar por MCP. Una sola vez se pasan a 6, con los mismos nombres que ya tiene el staging, y se guarda el
 // árbol anterior en la meta _clp_respaldo_ids_141 de la plantilla. No toca nada más (el CSS no usa esos IDs).
-add_action( 'init', function () {
-	if ( get_option( 'clp_srv_ids_141' ) || ! defined( 'BRICKS_DB_PAGE_CONTENT' ) ) {
+// Corre en wp-admin con un administrador: Bricks solo deja guardar el contenido de una plantilla a quien puede
+// usar el constructor.
+add_action( 'admin_init', function () {
+	if ( get_option( 'clp_srv_ids_141' ) || ! defined( 'BRICKS_DB_PAGE_CONTENT' ) || ! current_user_can( 'manage_options' ) || wp_doing_ajax() ) {
 		return;
 	}
 	$tid = cl_srv_plantilla_id();
@@ -500,6 +502,11 @@ add_action( 'init', function () {
 		}
 		unset( $e );
 		update_post_meta( $tid, BRICKS_DB_PAGE_CONTENT, $els );
+		wp_cache_delete( $tid, 'post_meta' );
+		$guardado = get_post_meta( $tid, BRICKS_DB_PAGE_CONTENT, true );
+		if ( ! is_array( $guardado ) || array_column( $guardado, 'id' ) !== array_column( $els, 'id' ) ) {
+			return; // No se pudo guardar: se vuelve a intentar en la próxima visita a wp-admin.
+		}
 	}
 	update_option( 'clp_srv_ids_141', $mapa ? count( $mapa ) . ' IDs' : 'nada', false );
 }, 40 );
