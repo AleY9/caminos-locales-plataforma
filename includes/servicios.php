@@ -453,6 +453,57 @@ function cl_srv_plantilla_id() {
 	return $id;
 }
 
+// 1.4.1: la plantilla «Single Servicio» tenía IDs de elementos de 5 y 7 letras (Bricks pide 6) y por eso no se
+// podía editar por MCP. Una sola vez se pasan a 6, con los mismos nombres que ya tiene el staging, y se guarda el
+// árbol anterior en la meta _clp_respaldo_ids_141 de la plantilla. No toca nada más (el CSS no usa esos IDs).
+add_action( 'init', function () {
+	if ( get_option( 'clp_srv_ids_141' ) || ! defined( 'BRICKS_DB_PAGE_CONTENT' ) ) {
+		return;
+	}
+	$tid = cl_srv_plantilla_id();
+	$els = $tid ? get_post_meta( $tid, BRICKS_DB_PAGE_CONTENT, true ) : array();
+	if ( ! is_array( $els ) || ! $els ) {
+		update_option( 'clp_srv_ids_141', 'sin-plantilla', false );
+		return;
+	}
+	$fijos = array( 'sscab' => 'sscab0', 'ssimg' => 'ssimg0', 'sstx' => 'sstx00', 'sscont2' => 'sscnt2', 'sswa' => 'sswa00', 'ssig' => 'ssig00', 'ssweb' => 'ssweb0', 'sslug' => 'sslug0', 'ssmapsc' => 'ssmaps', 'ssllegar' => 'sslleg', 'ssfb' => 'ssfb00', 'ssizq' => 'ssizq0' );
+	$usados = array();
+	foreach ( $els as $e ) {
+		$usados[ (string) $e['id'] ] = true;
+	}
+	$mapa = array();
+	foreach ( $els as $e ) {
+		$viejo = (string) $e['id'];
+		if ( 6 === strlen( $viejo ) ) {
+			continue;
+		}
+		$nuevo = isset( $fijos[ $viejo ] ) ? $fijos[ $viejo ] : substr( str_pad( $viejo, 6, '0' ), 0, 6 );
+		for ( $i = 1; isset( $usados[ $nuevo ] ) && $i < 100; $i++ ) {
+			$nuevo = substr( $viejo, 0, 4 ) . str_pad( (string) $i, 2, '0', STR_PAD_LEFT );
+		}
+		$mapa[ $viejo ] = $nuevo;
+		$usados[ $nuevo ] = true;
+	}
+	if ( $mapa ) {
+		update_post_meta( $tid, '_clp_respaldo_ids_141', $els );
+		$f = function ( $x ) use ( $mapa ) {
+			return isset( $mapa[ (string) $x ] ) ? $mapa[ (string) $x ] : $x;
+		};
+		foreach ( $els as &$e ) {
+			$e['id'] = $f( $e['id'] );
+			if ( ! empty( $e['parent'] ) ) {
+				$e['parent'] = $f( $e['parent'] );
+			}
+			if ( ! empty( $e['children'] ) && is_array( $e['children'] ) ) {
+				$e['children'] = array_map( $f, $e['children'] );
+			}
+		}
+		unset( $e );
+		update_post_meta( $tid, BRICKS_DB_PAGE_CONTENT, $els );
+	}
+	update_option( 'clp_srv_ids_141', $mapa ? count( $mapa ) . ' IDs' : 'nada', false );
+}, 40 );
+
 add_filter( 'bricks/active_templates', function ( $active, $post_id, $content_type ) {
 	if ( ! is_singular( 'emprendimientos' ) || ! cl_es_servicio( get_queried_object_id() ) || ! cl_srv_plantilla_id() ) {
 		return $active;
