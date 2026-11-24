@@ -60,7 +60,8 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
 * Servicios locales y Servicios para contratar: orden aleatorio que cambia una vez por día, como el resto.
 * «Ver la ficha completa ↗» → «Ver tu ficha ↗».
 * En Bricks (página 28262): campos clidio y clidot en el formulario 2ikuem; Shortcode [cl_panel_fotos] en
-  Presentación para el servicio; condición tipo == completa en clpas5, clpas6; «Paso N de
+  Presentación para el servicio; clbrev sin «obligatorio» (lo exige el código en la completa); condición
+  tipo == completa en clpas5, clpas6; «Paso N de
   {echo:cl_pi('pasos_total')}»; textos de introducción por tipo; «Siguiente» de Contacto según el tipo.
   Mi panel (22812): «Mi inscripción» (pnins0) no se muestra en las fichas de servicio.
 1.3.3
