@@ -183,8 +183,9 @@ add_action( 'wp_footer', function () {
 		plegar(['clcvis', 'clhcvi'], 'Qué datos se muestran en la web', '(todos, salvo que desmarques)', '', false);
 		if (T !== 'completa') {
 			// Email: la ficha simple no tiene formulario de consultas.
-			var hm = g('clhmai'), p = hm && hm.querySelector('p');
-			if (p) { p.textContent = 'Si ya está publicada, un cambio de email lo revisa Caminos Locales antes.'; }
+			[].forEach.call(form.querySelectorAll('.form-group > p'), function(p){
+				if (p.textContent.indexOf('A este email llegan') === 0) { p.textContent = 'Si tu ficha ya está publicada, un cambio de email lo revisa Caminos Locales antes.'; }
+			});
 		}
 		if (T === 'servicio') {
 			// «¿Dónde aparece tu servicio?» arriba: es lo primero que decide un prestador.

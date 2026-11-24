@@ -1597,7 +1597,7 @@ add_shortcode( 'cl_panel_vista', function () {
 			<?php wp_nonce_field( 'cl_enviar_' . $id, '_clnonce', false ); ?>
 			<button type="submit" class="clv-btn"<?php echo $faltan_oblig ? ' disabled' : ''; ?>><?php echo cl_sin_revision() ? 'Publicar' : 'Enviar a revisión'; ?></button>
 		</form>
-		<?php if ( $faltan_oblig && $minima ) : ?>
+		<?php if ( $faltan_oblig && $minima && 'completa' === $tipo ) : // 1.4.0: en las fichas simples lo obligatorio ya es lo mínimo ?>
 			<div class="clv-box">
 				<h3 class="clv-h">¿Querés aparecer ya?</h3>
 				<?php if ( ! $falta_min ) : ?>
