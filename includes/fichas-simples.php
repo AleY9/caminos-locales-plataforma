@@ -13,8 +13,9 @@
  *   En Bricks (página 28262): los accesos clpas5 y clpas6 llevan la condición {echo:cl_pi('tipo')} == completa,
  *   las líneas «Paso N de …» usan {echo:cl_pi('pasos_total')} y «Siguiente» de Contacto tiene dos versiones.
  *   Si se entra a ?paso=fotos u ?paso=otros, redirige a Presentación.
- * - Servicio: la foto o el logo va en Presentación (elemento Shortcode [cl_panel_fotos] con condición), y también
- *   los idiomas (campos clidio y clidot del formulario 2ikuem). Una sola descripción: la breve se arma sola con
+ * - Servicio: la foto o el logo, y hasta 4 fotos de su trabajo (foto1–foto4 de fotos_actividades, que se ven en la
+ *   ficha y la ventana del servicio con {cl_fotos:fotos_actividades}), van en Presentación (elemento Shortcode
+ *   [cl_panel_fotos] con condición), y también los idiomas (campos clidio y clidot del formulario 2ikuem). Una sola descripción: la breve se arma sola con
  *   la primera oración (meta _cl_breve_auto) mientras el prestador no escriba la suya.
  * - Solo alojamiento: Presentación pide solo el nombre.
  * - Para publicar alcanza con nombre, qué ofrece, región y localidad y un contacto (panel.php,
@@ -112,6 +113,16 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 	}
 	update_post_meta( $id, '_cl_breve_auto', '1' );
 }, 20 );
+
+// {echo:cl_srv_breve_auto} → '1' si la breve de la ficha se armó sola con la primera oración de la descripción.
+// En la ficha del servicio y en su ventana, la breve se oculta en ese caso (repetiría el comienzo de la descripción).
+function cl_srv_breve_auto( $id = 0 ) {
+	$id = $id ? (int) $id : get_the_ID();
+	return '1' === get_post_meta( $id, '_cl_breve_auto', true ) ? '1' : '';
+}
+add_filter( 'bricks/code/echo_function_names', function ( $names ) {
+	return array_merge( (array) $names, array( 'cl_srv_breve_auto' ) );
+} );
 
 // Reordenar y simplificar los formularios según el tipo (los textos nuevos están en Bricks).
 add_action( 'wp_footer', function () {

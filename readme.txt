@@ -54,6 +54,10 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   oración, meta _cl_breve_auto, mientras no haya una propia); «Nombre (tuyo o de tu servicio)»; en Ubicación,
   primero la zona de trabajo y el mapa plegado en «¿Atendés en un lugar fijo?»; en Contacto, «¿Dónde aparece tu
   servicio?» primero. El progreso de Mi panel ya no pide el mapa ni la breve.
+* Servicio: hasta 4 «Fotos de tu trabajo» sin pasar a la ficha completa (foto1–foto4 de fotos_actividades: si un
+  día pasa a completa, quedan como fotos de actividades). En Bricks, galería {cl_fotos:fotos_actividades} en
+  Single Servicio (28729, ssgal1) y en la ventana (28730, pvgal1). {echo:cl_srv_breve_auto}: la breve automática
+  no se muestra en la ficha ni en la ventana (condición en ssbrev y pvbrev).
 * Solo alojamiento: Presentación pide solo el nombre; «Ver cómo queda» explica que se ven sus alojamientos y
   lleva a «Mis alojamientos».
 * Contacto (todos): «Qué datos se muestran en la web» plegado (por defecto se muestra todo).
