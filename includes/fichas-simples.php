@@ -152,6 +152,8 @@ add_action( 'wp_footer', function () {
 	if (paso === 'presentacion') {
 		if (T === 'completa') {
 			ocultar('clidio'); ocultar('clidot');
+			var br = form.querySelector('[name="form-field-clbrev"]');
+			if (br) { br.required = true; } // en Bricks ya no es obligatorio: lo exige el código solo acá
 		} else {
 			ocultar('clbrev');
 		}

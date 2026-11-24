@@ -891,6 +891,13 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 		return $error( 'No tenés permiso para editar esta ficha.' );
 	}
 
+	// 1.4.0: la breve descripción es obligatoria solo en la ficha completa (en Bricks ya no lleva «obligatorio»,
+	// porque en las fichas simples el campo no se muestra).
+	if ( 'presentacion' === $paso && array_key_exists( 'form-field-clbrev', $f ) && '' === trim( (string) $f['form-field-clbrev'] )
+		&& ( ! function_exists( 'cl_panel_tipo' ) || 'completa' === cl_panel_tipo( $emp_id ) ) ) {
+		return $error( 'Escribí la breve descripción.' );
+	}
+
 	// Con Actividades y experiencias, hace falta al menos una Forma de andar.
 	$con_rubro = 'actividades' === $paso && array_key_exists( 'form-field-clrubr', $f );
 	if ( $con_rubro ) {
