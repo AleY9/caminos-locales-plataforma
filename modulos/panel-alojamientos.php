@@ -1142,8 +1142,10 @@ add_shortcode( 'cl_panel_aloj_vista', function () {
 		<?php foreach ( $oblig as $o ) : ?>
 			<div class="clv-row"><span class="clv-i <?php echo $o[1] ? 'clv-ok' : 'clv-no'; ?>"><?php echo $o[1] ? '✓' : '✕'; ?></span><?php echo esc_html( $o[0] ); ?><?php if ( ! $o[1] ) : ?><a href="<?php echo esc_url( cl_aloj_url( $id, $o[2] ) ); ?>">Completar</a><?php endif; ?></div>
 		<?php endforeach; ?>
-		<?php foreach ( $suger as $o ) : ?>
-			<?php if ( ! $o[1] ) : ?>
+		<?php foreach ( $suger as $o ) : // 1.4.3: lo opcional cargado también se ve, con ✓. ?>
+			<?php if ( $o[1] ) : ?>
+				<div class="clv-row"><span class="clv-i clv-ok">✓</span><?php echo esc_html( $o[0] ); ?></div>
+			<?php else : ?>
 				<div class="clv-row"><span class="clv-i clv-opc">!</span><?php echo esc_html( $o[0] ); ?> <span style="color:#7a8583;font-size:14px">(opcional)</span><a href="<?php echo esc_url( cl_aloj_url( $id, $o[2] ) ); ?>">Agregar</a></div>
 			<?php endif; ?>
 		<?php endforeach; ?>
