@@ -380,6 +380,9 @@ function cl_panel_valor( $campo ) {
 		case 'contacto_visible':
 			// 1.2.0: casillas «Se muestra en la web» (clcvis). Por defecto, todas marcadas.
 			return function_exists( 'cl_contacto_ocultos' ) ? implode( ',', array_diff( array_keys( cl_contacto_campos() ), cl_contacto_ocultos( $id ) ) ) : '';
+		case 'ubicacion_publica':
+			// 1.4.2: «¿Mostrás la ubicación exacta en la web?» (radio clubpu). Por defecto, Sí.
+			return function_exists( 'cl_ubicacion_es_privada' ) && cl_ubicacion_es_privada( $id ) ? 'No' : 'Sí';
 		case 'red_visible':
 			// 1.3.1: casillas «¿Qué se muestra en el directorio de la red?». Por defecto, solo el teléfono.
 			return function_exists( 'cl_red_visibles' ) ? implode( ',', cl_red_visibles( $id ) ) : 'telefono';
@@ -972,6 +975,13 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 		}
 	}
 
+	// 1.4.2: «¿Mostrás la ubicación exacta en la web?» (radio clubpu: Sí / No).
+	if ( 'ubicacion' === $paso && isset( $f['form-field-clubpu'] ) && function_exists( 'cl_ubicacion_guardar' ) ) {
+		if ( cl_ubicacion_guardar( $emp_id, $f['form-field-clubpu'] ) ) {
+			$cambios[] = 'ubicacion_privada';
+		}
+	}
+
 	// 1.3.1: «¿Qué se muestra en el directorio de la red?» (casillas clcred + oculto clcrex).
 	if ( 'contacto' === $paso && ! empty( $f['form-field-clcrex'] ) && function_exists( 'cl_red_guardar' ) ) {
 		if ( cl_red_guardar( $emp_id, isset( $f['form-field-clcred'] ) ? (array) $f['form-field-clcred'] : array() ) ) {
@@ -1115,6 +1125,10 @@ function cl_panel_progreso( $id ) {
 	}
 	if ( ! cl_panel_recibe_visitantes( $id ) ) {
 		unset( $chk['cómo llegar'] );
+	}
+	// 1.4.2: ubicación privada: el mapa y «Cómo llegar» no se piden.
+	if ( function_exists( 'cl_ubicacion_es_privada' ) && cl_ubicacion_es_privada( $id ) ) {
+		unset( $chk['mapa'], $chk['cómo llegar'] );
 	}
 	// Ficha compacta (1.1.0): sin «Quiénes somos»; la foto puede ser el logo.
 	// 1.4.0: sin la breve (se arma sola) ni el mapa (quien trabaja a domicilio no tiene).
@@ -1272,7 +1286,18 @@ add_shortcode( 'cl_panel_inicio', function () {
 // ---------- Paso final: Ver cómo queda / Enviar a revisión ----------
 
 // Lo que tiene que estar antes de enviar a revisión (obligatorio) y lo que conviene sumar (sugerido).
+// 1.4.2: con la ubicación privada, «Ver cómo queda» no sugiere el mapa ni «Cómo llegar».
 function cl_panel_revision_chequeo( $id ) {
+	list( $oblig, $suger ) = cl_panel_revision_chequeo_base( $id );
+	if ( function_exists( 'cl_ubicacion_es_privada' ) && cl_ubicacion_es_privada( $id ) ) {
+		$suger = array_values( array_filter( $suger, function ( $s ) {
+			return ! in_array( $s[0], array( 'Mapa', 'Cómo llegar' ), true );
+		} ) );
+	}
+	return array( $oblig, $suger );
+}
+
+function cl_panel_revision_chequeo_base( $id ) {
 	$tel_mail = get_field( 'telefono_contacto', $id, false ) . get_field( 'email-emp', $id, false );
 	$cats     = wp_get_object_terms( $id, 'category', array( 'fields' => 'ids' ) );
 	$cats     = is_wp_error( $cats ) ? array() : array_intersect( array_map( 'intval', $cats ), CL_FORMAS_DE_ANDAR );
