@@ -75,6 +75,20 @@ function cl_srv_con_ficha_completa( $id ) {
 	return cl_srv_tiene_rubro_servicio( $id ) && ! cl_es_servicio( $id );
 }
 
+// 1.4.3: ¿se le pregunta «Tu zona de trabajo»? A la ficha de servicio, siempre (catering, viandas, delivery…).
+// A la que recibe visitantes (Alojamiento o Actividades), solo si además ofrece un servicio que se traslada:
+// Comida o Productos locales junto a un alojamiento se ofrecen en el lugar, y la zona es su localidad.
+function cl_srv_rubros_moviles() {
+	return array( 'transporte-local', 'guia', 'servicios-para-alojamientos', 'construccion-y-oficios' );
+}
+
+function cl_srv_pide_zona( $id ) {
+	if ( ! cl_srv_tiene_rubro_servicio( $id ) ) {
+		return false;
+	}
+	return cl_es_servicio( $id ) || (bool) array_intersect( cl_srv_rubros( $id ), cl_srv_rubros_moviles() );
+}
+
 function cl_srv_es_comida( $id ) {
 	return has_term( 'comida', 'rubro', $id );
 }
@@ -543,6 +557,7 @@ add_action( 'wp_footer', function () {
 	}
 	$rev     = ( ! function_exists( 'cl_sin_revision' ) || ! cl_sin_revision() ) && 'publish' === get_post_status( $id ) ? 1 : 0;
 	$en_srv  = cl_srv_tiene_rubro_servicio( $id ) ? 1 : 0;
+	$zona    = cl_srv_pide_zona( $id ) ? 1 : 0; // 1.4.3
 	$compact = cl_es_servicio( $id ) ? 1 : 0;
 	$comida  = cl_srv_es_comida( $id ) ? 1 : 0;
 	// 1.1.4: el admin ve los rubros curados en «¿Qué ofrecés?».
@@ -558,14 +573,14 @@ add_action( 'wp_footer', function () {
 	?>
 <script>
 (function(){
-	var EN = <?php echo (int) $en_srv; ?>, CO = <?php echo (int) $compact; ?>, C = <?php echo (int) $comida; ?>;
+	var EN = <?php echo (int) $en_srv; ?>, ZO = <?php echo (int) $zona; ?>, CO = <?php echo (int) $compact; ?>, C = <?php echo (int) $comida; ?>;
 	var TUR = <?php echo wp_json_encode( $ids_turismo ); ?>, REV = <?php echo (int) $rev; ?>;
 	function g(id){ var el = document.querySelector('form.brxe-form [name="form-field-' + id + '"], form.brxe-form [name="form-field-' + id + '[]"], form.brxe-form [data-cl="' + id + '"]'); return el && el.closest('.form-group'); }
 	function ver(id, on){ var x = g(id); if (x) { x.style.display = on ? '' : 'none'; } }
-	// Ubicación: zona para todo el que aparece en Servicios.
-	['clhsrv','clsalc','clsnot'].forEach(function(id){ ver(id, EN); });
+	// Ubicación: zona para quien da un servicio fuera de su lugar (1.4.3: no para Comida junto a un alojamiento).
+	['clhsrv','clsalc','clsnot'].forEach(function(id){ ver(id, ZO); });
 	var alc = document.querySelectorAll('form.brxe-form [name^="form-field-clsalc"]');
-	function km(){ var v = ''; [].forEach.call(alc, function(r){ if (r.checked) { v = r.value; } }); ver('clskm', EN && v === 'Hasta cierta distancia'); }
+	function km(){ var v = ''; [].forEach.call(alc, function(r){ if (r.checked) { v = r.value; } }); ver('clskm', ZO && v === 'Hasta cierta distancia'); }
 	[].forEach.call(alc, function(r){ r.addEventListener('change', km); });
 	km();
 	// Aviso de cambio de nombre: solo si hay revisión y la ficha está publicada.

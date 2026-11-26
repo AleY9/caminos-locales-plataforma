@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.4.2 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.4.3 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,11 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.4.3
+* «Tu zona de trabajo» (paso Ubicación) se pregunta solo en la ficha de servicio o si la ficha tiene un servicio que
+  se traslada (Transporte local, Guía local, Servicios para alojamientos, Construcción y oficios): cl_srv_pide_zona().
+  Una ficha que recibe visitantes y marca Comida o Productos locales (los ofrece en el lugar) ya no la ve; en
+  Servicios locales su zona es la localidad.
 1.4.2
 * Ubicación privada (includes/ubicacion-privada.php): en el paso Ubicación, «¿Mostrás la ubicación exacta en la web?»
   (radio clubpu del formulario pqgjw0; valor {echo:cl_panel_valor('ubicacion_publica')}, por defecto Sí). Con No
