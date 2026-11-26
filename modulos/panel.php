@@ -1291,7 +1291,7 @@ function cl_panel_revision_chequeo( $id ) {
 	list( $oblig, $suger ) = cl_panel_revision_chequeo_base( $id );
 	if ( function_exists( 'cl_ubicacion_es_privada' ) && cl_ubicacion_es_privada( $id ) ) {
 		$suger = array_values( array_filter( $suger, function ( $s ) {
-			return ! in_array( $s[0], array( 'Mapa', 'Cómo llegar' ), true );
+			return ! in_array( $s[0], array( 'Mapa', 'Dirección', 'Cómo llegar' ), true );
 		} ) );
 	}
 	return array( $oblig, $suger );
@@ -1331,7 +1331,7 @@ function cl_panel_revision_chequeo_base( $id ) {
 				array( 'Foto o logo', get_post_thumbnail_id( $id ) || (int) get_post_meta( $id, 'imagen_extra', true ), 'presentacion' ),
 			);
 		} else {
-			$suger = array( array( 'Mapa', '' !== trim( (string) get_field( 'ubicacion', $id, false ) ), 'ubicacion' ), array( 'Cómo llegar', '' !== trim( (string) get_field( 'como_llegar', $id, false ) ), 'lugar' ) );
+			$suger = array( array( 'Mapa', '' !== trim( (string) get_field( 'ubicacion', $id, false ) ), 'ubicacion' ), array( 'Dirección', '' !== trim( (string) get_field( 'direccion_o_punto_de_encuentro', $id, false ) ), 'ubicacion' ), array( 'Cómo llegar', '' !== trim( (string) get_field( 'como_llegar', $id, false ) ), 'lugar' ) );
 		}
 		return array( $oblig, $suger );
 	}
@@ -1339,6 +1339,9 @@ function cl_panel_revision_chequeo_base( $id ) {
 		array_splice( $oblig, 4, 0, array( array( '¿Qué se puede hacer en tu lugar?', ! empty( $cats ), 'actividades' ) ) );
 	}
 	$suger = array( array( 'Mapa', '' !== trim( (string) get_field( 'ubicacion', $id, false ) ), 'ubicacion' ) );
+	if ( ! function_exists( 'cl_es_servicio' ) || ! cl_es_servicio( $id ) ) {
+		$suger[] = array( 'Dirección', '' !== trim( (string) get_field( 'direccion_o_punto_de_encuentro', $id, false ) ), 'ubicacion' );
+	}
 	if ( cl_panel_recibe_visitantes( $id ) ) {
 		$suger[] = array( 'Cómo llegar', '' !== trim( (string) get_field( 'como_llegar', $id, false ) ), 'lugar' );
 	}
@@ -1611,11 +1614,16 @@ add_shortcode( 'cl_panel_vista', function () {
 		<?php foreach ( $oblig as $o ) : ?>
 			<div class="clv-row"><span class="clv-i <?php echo $o[1] ? 'clv-ok' : 'clv-no'; ?>"><?php echo $o[1] ? '✓' : '✕'; ?></span><?php echo esc_html( $o[0] ); ?><?php if ( ! $o[1] ) : ?><a href="<?php echo esc_url( $paso_url( $o[2] ) ); ?>">Completar</a><?php endif; ?></div>
 		<?php endforeach; ?>
-		<?php foreach ( $suger as $o ) : ?>
-			<?php if ( ! $o[1] ) : ?>
+		<?php foreach ( $suger as $o ) : // 1.4.3: lo opcional cargado también se ve, con ✓. ?>
+			<?php if ( $o[1] ) : ?>
+				<div class="clv-row"><span class="clv-i clv-ok">✓</span><?php echo esc_html( $o[0] ); ?></div>
+			<?php else : ?>
 				<div class="clv-row"><span class="clv-i clv-opc">!</span><?php echo esc_html( $o[0] ); ?> <span style="color:#7a8583;font-size:14px">(opcional)</span><a href="<?php echo esc_url( $paso_url( $o[2] ) ); ?>">Agregar</a></div>
 			<?php endif; ?>
 		<?php endforeach; ?>
+		<?php if ( 'servicio' !== $tipo && function_exists( 'cl_ubicacion_es_privada' ) && cl_ubicacion_es_privada( $id ) ) : ?>
+			<div class="clv-row"><span class="clv-i clv-ok">✓</span>Ubicación exacta: la pasás por WhatsApp<a href="<?php echo esc_url( $paso_url( 'ubicacion' ) ); ?>">Cambiar</a></div>
+		<?php endif; ?>
 		<?php foreach ( $pend as $campo => $p ) : ?>
 			<?php if ( isset( $nombres[ $campo ] ) ) : ?>
 				<div class="clv-row"><span class="clv-i clv-opc">⏳</span><?php echo esc_html( $nombres[ $campo ] . ' nuevo: queda en revisión' ); ?></div>
