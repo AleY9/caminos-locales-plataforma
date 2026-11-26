@@ -324,6 +324,7 @@ add_shortcode( 'cl_panel_fotos', function () {
 		<p class="clf-p">Hasta 4: lo que hacés, tus trabajos terminados, tu vehículo o tu puesto. Se ven al abrir tu ficha.</p>
 		<?php echo $grilla( 'act', 4, 'Foto' ); // phpcs:ignore ?>
 	</div>
+	<?php echo function_exists( 'cl_fotos_redes_html' ) ? cl_fotos_redes_html( $emp_id ) : ''; // phpcs:ignore -- 1.4.5 ?>
 </div>
 	<?php else : ?>
 	<div class="clf-sec">
@@ -349,6 +350,7 @@ add_shortcode( 'cl_panel_fotos', function () {
 			<?php echo $tarjeta( 'logo', 'Logo', 'Si tienen. Opcional.' ); // phpcs:ignore ?>
 		</div>
 	</div>
+	<?php echo function_exists( 'cl_fotos_redes_html' ) ? cl_fotos_redes_html( $emp_id ) : ''; // phpcs:ignore -- 1.4.5 ?>
 </div>
 	<?php endif; ?>
 <script>

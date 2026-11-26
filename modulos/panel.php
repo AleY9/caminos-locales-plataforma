@@ -1817,6 +1817,9 @@ add_shortcode( 'cl_panel_admin_emp', function () {
 	if ( function_exists( 'clp_panel_admin_extra' ) ) {
 		$h .= clp_panel_admin_extra( $id );
 	}
+	if ( $id && function_exists( 'cl_fotos_redes_admin' ) ) { // 1.4.5
+		$h .= cl_fotos_redes_admin( $id );
+	}
 	return $h . '</div>';
 } );
 
