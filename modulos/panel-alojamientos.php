@@ -1414,6 +1414,13 @@ add_shortcode( 'cl_panel_aloj_fotos', function () {
 			?>
 		</div>
 	</div>
+	<?php
+	// 1.4.5: si el emprendimiento no tiene página propia, el permiso de fotos en redes se pide acá.
+	$emp_r = cl_aloj_emp_de( $id );
+	if ( $emp_r && function_exists( 'cl_emp_sin_pagina' ) && cl_emp_sin_pagina( $emp_r ) && function_exists( 'cl_fotos_redes_html' ) ) {
+		echo cl_fotos_redes_html( $emp_r ); // phpcs:ignore
+	}
+	?>
 </div>
 <script>
 (function(){

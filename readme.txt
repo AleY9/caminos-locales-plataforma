@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.4.4 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.4.5 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,14 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.4.5
+* Fotos en redes (includes/fotos-redes.php): casilla «Caminos Locales puede usar mis fotos en sus redes sociales»,
+  marcada, al final de las fotos del emprendimiento ([cl_panel_fotos]) y, si no tiene página propia, al final de las
+  fotos del alojamiento ([cl_panel_aloj_fotos]). Una decisión por emprendimiento: meta _cl_fotos_redes ('1', '0' o
+  vacío = sin decidir) y _cl_fotos_redes_fecha. Si el emprendedor la ve sin haber decidido, queda «sí» con la fecha;
+  lo que carga el admin no registra nada. Desmarcar o marcar se guarda al momento (admin-ajax cl_fotos_redes) y va
+  a los avisos. cl_fotos_redes( $emp ) da true solo con «sí». El recuadro de carga asistida de Mi panel muestra
+  el estado.
 1.4.4
 * «Ver cómo queda» (emprendimiento, alojamiento y experiencia): lo opcional ya cargado se ve con ✓ (antes solo
   aparecía lo que faltaba). En el emprendimiento se suma «Dirección» como opcional, y con la ubicación privada,
