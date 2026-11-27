@@ -1,5 +1,5 @@
 === Caminos Locales Plataforma ===
-Versión: 1.4.5 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
+Versión: 1.4.6 · Requiere: WordPress 6.4+, PHP 8.0+, Advanced Custom Fields, Bricks
 
 Panel del emprendedor, fichas y funciones propias de caminoslocales.com. Reemplaza a los snippets
 «CL – …» de Code Snippets, con el mismo código: los emprendedores no notan nada.
@@ -43,6 +43,23 @@ Las funciones siguen con el prefijo cl_: Bricks no cambia.
   Los cambios llegan a producción como versión nueva del plugin.
 
 == Cambios ==
+1.4.6
+* Ubicación privada: la vista del mapa del panel ([cl_panel_mapa]) muestra «Elegiste no mostrar la ubicación
+  exacta…» al elegir No (sin guardar; CSS en includes/ubicacion-privada.php), en lugar de «Todavía no hay mapa…» o
+  del mapa cargado.
+* Alojamientos: la capacidad pasa a obligatoria en «Ver cómo queda» y para publicar (el formulario ya la exigía).
+* De dónde llegan las solicitudes (includes/origen.php): un script anota en el navegador (localStorage cl_origen)
+  de dónde vino la visita (sitio que la trajo, utm_source o ?desde=, o «directo»); «Pedí sumarte» lo manda en un
+  campo oculto y queda en la solicitud y en el aviso («Llegó desde»). Sin preguntas nuevas en el formulario.
+  Pregunta opcional «¿Cómo conociste Caminos Locales?» al final de «Ver cómo queda» del emprendimiento (meta
+  _cl_como_conocio, se guarda al momento). El recuadro de carga asistida muestra las dos cosas.
+* Borrar emprendimiento (includes/borrar-emprendimiento.php), solo administradores, en el recuadro de carga asistida:
+  muestra qué se va a la papelera (ficha, alojamientos y experiencias) y pide escribir el nombre para confirmar.
+  Todo a la papelera; se anulan sus invitaciones sin usar; las fotos y la cuenta del dueño no se tocan. Registro en
+  la meta _cl_borrado.
+* Texto alternativo (includes/texto-alternativo.php): las fotos de las fichas sin texto alternativo reciben el nombre
+  de la ficha (foto principal) o «Nombre – foto N». Al guardar una ficha y una vez en todas (opción clp_alt_146).
+  Nunca reemplaza un texto escrito.
 1.4.5
 * Fotos en redes (includes/fotos-redes.php): casilla «Caminos Locales puede usar mis fotos en sus redes sociales»,
   marcada, al final de las fotos del emprendimiento ([cl_panel_fotos]) y, si no tiene página propia, al final de las

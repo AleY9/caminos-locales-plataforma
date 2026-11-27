@@ -15,6 +15,7 @@
  * - En el panel no se piden: se ocultan el mapa y la dirección (paso Ubicación, al elegir No) y «Cómo llegar»
  *   (paso Llegar y estar), y «Ver cómo queda» y el progreso dejan de sugerirlos.
  * - Las experiencias «En otro lugar» no cambian: su lugar y su mapa son propios.
+ * - 1.4.6: la vista del mapa del panel ([cl_panel_mapa]) muestra «Elegiste no mostrar la ubicación exacta…» con No.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -112,6 +113,8 @@ add_action( 'wp_footer', function () {
 	}
 	$emp = cl_panel_emp_id();
 	$css = '.brxe-form:has([name^="form-field-clubpu"][value="No"]:checked) .form-group:is(:has([name="form-field-clmapa"]),:has([name="form-field-cldire"]),:has(+ .form-group [name="form-field-clmapa"])){display:none!important}';
+	// 1.4.6: vista del mapa ([cl_panel_mapa]): con No, el mensaje «Elegiste no mostrar…» en lugar del mapa.
+	$css .= '.cl-mapa-priv{display:none}body:has([name^="form-field-clubpu"][value="No"]:checked) .cl-mapa-pub{display:none}body:has([name^="form-field-clubpu"][value="No"]:checked) .cl-mapa-priv{display:block}';
 	if ( $emp && function_exists( 'cl_es_servicio' ) && cl_es_servicio( $emp ) ) {
 		$css .= '.brxe-form .form-group:has([name^="form-field-clubpu"]){display:none!important}';
 	}

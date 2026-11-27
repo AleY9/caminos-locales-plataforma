@@ -1092,10 +1092,16 @@ add_shortcode( 'cl_panel_mapa', function () {
 	}
 	$id  = cl_panel_emp_id();
 	$url = ( $id && function_exists( 'cl_mapa_url_propia' ) ) ? cl_mapa_url_propia( $id ) : '';
+	$caja = 'border:1px dashed #9fb3ae;border-radius:12px;background:#dfe7e3;padding:24px;text-align:center;font-size:15px;color:#3d4b49';
 	if ( ! $url ) {
-		return '<div style="border:1px dashed #9fb3ae;border-radius:12px;background:#dfe7e3;padding:24px;text-align:center;font-size:15px;color:#3d4b49">Todavía no hay mapa. Cuando pegues el código y guardes, lo vas a ver acá.</div>';
+		$pub = '<div style="' . $caja . '">Todavía no hay mapa. Cuando pegues el código y guardes, lo vas a ver acá.</div>';
+	} else {
+		$pub = '<div style="font-weight:700;margin:0 0 8px">Así se ve tu mapa ahora</div><div style="height:260px;border-radius:12px;overflow:hidden"><iframe src="' . esc_url( $url ) . '" title="Mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="border:0;width:100%;height:100%"></iframe></div>';
 	}
-	return '<div style="font-weight:700;margin:0 0 8px">Así se ve tu mapa ahora</div><div style="height:260px;border-radius:12px;overflow:hidden"><iframe src="' . esc_url( $url ) . '" title="Mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="border:0;width:100%;height:100%"></iframe></div>';
+	// 1.4.6: con «No» en «¿Mostrás la ubicación exacta en la web?» se ve otro mensaje (lo cambia el CSS de
+	// includes/ubicacion-privada.php al momento de elegir, sin guardar).
+	$priv = '<div class="cl-mapa-priv" style="' . $caja . '">Elegiste no mostrar la ubicación exacta. En tu ficha se ven la localidad y el aviso de que la pasás por WhatsApp al confirmar la reserva.</div>';
+	return '<div class="cl-mapa-vista"><div class="cl-mapa-pub">' . $pub . '</div>' . $priv . '</div>';
 } );
 
 // ---------- Mi panel: [cl_panel_inicio] ----------
@@ -1682,6 +1688,8 @@ add_shortcode( 'cl_panel_vista', function () {
 		</div>
 	<?php endif; ?>
 
+	<?php echo function_exists( 'cl_como_conocio_html' ) ? cl_como_conocio_html( $id ) : ''; // 1.4.6 phpcs:ignore WordPress.Security.EscapeOutput ?>
+
 	<?php if ( $es_admin && 'publish' !== $estado ) : ?>
 		<a class="clv-link" href="<?php echo esc_url( admin_url( 'post.php?post=' . $id . '&action=edit' ) ); ?>">Revisar y publicar en wp-admin (solo admin)</a>
 	<?php endif; ?>
@@ -1820,6 +1828,13 @@ add_shortcode( 'cl_panel_admin_emp', function () {
 	if ( $id && function_exists( 'cl_fotos_redes_admin' ) ) { // 1.4.5
 		$h .= cl_fotos_redes_admin( $id );
 	}
+	if ( $id && function_exists( 'cl_origen_admin' ) ) { // 1.4.6
+		$h .= cl_origen_admin( $id );
+	}
+	if ( $id && function_exists( 'clp_borrar_emp_html' ) ) { // 1.4.6
+		$h .= clp_borrar_emp_html( $id );
+	}
+	$h = ( function_exists( 'clp_borrar_emp_aviso' ) ? clp_borrar_emp_aviso() : '' ) . $h;
 	return $h . '</div>';
 } );
 
