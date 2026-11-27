@@ -584,9 +584,10 @@ function cl_aloj_chequeo( $id ) {
 		array( 'Tipo de alojamiento', ! is_wp_error( $tipos ) && $tipos, 'basico' ),
 		array( 'Descripción', '' !== trim( wp_strip_all_tags( (string) get_post_field( 'post_content', $id ) ) ), 'basico' ),
 		array( 'Foto principal', (bool) get_post_thumbnail_id( $id ), 'fotos' ),
+		// 1.4.6: la capacidad es obligatoria, como en el formulario (Lo básico, a5lqsa) y en el servidor.
+		array( 'Capacidad', '' !== (string) get_post_meta( $id, 'capacidad', true ), 'basico' ),
 	);
 	$suger = array(
-		array( 'Capacidad', '' !== (string) get_post_meta( $id, 'capacidad', true ), 'basico' ),
 		array( 'Qué tiene', ! is_wp_error( $cara ) && $cara, 'como' ),
 		array( 'Al menos 2 fotos más', count( cl_aloj_galeria( $id ) ) >= 2, 'fotos' ),
 		array( 'Precio', '' !== trim( (string) get_post_meta( $id, 'precio', true ) ), 'reservas' ),

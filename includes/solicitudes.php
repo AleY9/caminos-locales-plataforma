@@ -115,8 +115,11 @@ add_action( 'bricks/form/custom_action', function ( $form ) {
 		return $error( 'Completá tu nombre, el del emprendimiento o servicio, la localidad y el WhatsApp.' );
 	}
 
-	$emp_id = clp_sol_crear_borrador( compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros', 'ip_h' ) );
-	clp_sol_avisar( $emp_id, compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros' ) );
+	// 1.4.6: de dónde llegó (campo oculto que suma includes/origen.php; sin preguntarle nada).
+	list( $origen, $origen_pag ) = function_exists( 'cl_origen_de_envio' ) ? cl_origen_de_envio() : array( '', '' );
+
+	$emp_id = clp_sol_crear_borrador( compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros', 'ip_h', 'origen', 'origen_pag' ) );
+	clp_sol_avisar( $emp_id, compact( 'persona', 'nombre', 'local', 'tel', 'email', 'redes', 'mensaje', 'rubros', 'origen', 'origen_pag' ) );
 	// Si el formulario todavía tiene también la acción Email de Bricks, la confirmación ya la manda Bricks.
 	if ( ! in_array( 'email', (array) ( $settings['actions'] ?? array() ), true ) ) {
 		clp_sol_confirmar( $settings, $f, $email );
@@ -188,6 +191,8 @@ function clp_sol_crear_borrador( $d ) {
 		'sobra'   => $sobra,
 		'ip'      => $d['ip_h'],
 		'estado'  => 'nueva',
+		'origen'     => $d['origen'] ?? '',
+		'origen_pag' => $d['origen_pag'] ?? '',
 	) );
 	return (int) $emp_id;
 }
@@ -223,6 +228,9 @@ function clp_sol_avisar( $emp_id, $d ) {
 	$h .= $fila( 'Nombre', $d['persona'] ) . $fila( 'Emprendimiento o servicio', $d['nombre'] ) . $fila( 'Localidad', $d['local'] );
 	$h .= $fila( 'Qué ofrece', $d['rubros'] ? implode( ', ', $d['rubros'] ) : '(no marcó nada)' );
 	$h .= $fila( 'WhatsApp', $d['tel'] ) . $fila( 'Email', $d['email'] ) . $fila( 'Web o redes', $d['redes'] ) . $fila( 'Mensaje', $d['mensaje'] );
+	if ( ! empty( $d['origen'] ) ) { // 1.4.6
+		$h .= $fila( 'Llegó desde', $d['origen'] . ( ! empty( $d['origen_pag'] ) && '/' !== $d['origen_pag'] ? ' (entró por ' . $d['origen_pag'] . ')' : '' ) );
+	}
 	$h .= '</table>';
 	if ( $emp_id ) {
 		foreach ( clp_sol_parecidas( $emp_id, $d['nombre'] ) as $p ) {
